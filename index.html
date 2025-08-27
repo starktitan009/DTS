@@ -3,618 +3,391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTS - Truck Transport Business</title>
+    <title>DTS - Truck Management System</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- Intro Video Screen -->
-    <div id="videoScreen" class="video-screen">
+    <div id="intro-screen" class="intro-screen">
         <div class="video-container">
-            <iframe id="introVideo" 
-                    src="DTS.mp4" 
-                    frameborder="0" 
-                    allowfullscreen
-                    allow="autoplay">
-            </iframe>
-        </div>
-        <div class="loading-fallback hidden">
-            <div class="loader"></div>
-            <p>Loading DTS Transport System...</p>
-        </div>
-        <button id="skipVideo" class="btn btn--secondary skip-btn">Skip Video</button>
-    </div>
-
-    <!-- Login Screen -->
-    <div id="loginScreen" class="login-screen hidden">
-        <div class="login-container">
-            <div class="login-header">
-                <h1>🚛 DTS</h1>
-                <h2>Truck Transport Business</h2>
-            </div>
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <input type="text" id="username" class="form-control" placeholder="Username" required>
+            <video id="intro-video" muted autoplay>
+                <source src="intro.mp4" type="video/mp4">
+                <div class="video-fallback">
+                    <div class="fallback-content">
+                        <h1>DTS</h1>
+                        <p>Truck Management System</p>
+                        <div class="loading-spinner"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="password" id="password" class="form-control" placeholder="Password" required>
-                </div>
-                <div class="hint">sai</div>
-                <button type="submit" class="btn btn--primary btn--full-width">Login</button>
-                <div id="loginError" class="error-message hidden">Invalid credentials. Please try again.</div>
-            </form>
+            </video>
+            <button id="skip-intro" class="btn btn--primary skip-btn">
+                <i class="fas fa-forward"></i> Skip Intro
+            </button>
         </div>
     </div>
 
     <!-- Main Application -->
-    <div id="mainApp" class="main-app hidden">
+    <div id="main-app" class="main-app hidden">
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+        <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <span class="logo-icon">🚛</span>
-                    <span class="logo-text">DTS TRUCKING CARGO</span>
+                    <i class="fas fa-truck"></i>
+                    <span>DTS</span>
                 </div>
-                <button id="sidebarToggle" class="sidebar-toggle">☰</button>
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-section="dashboard">
-                    <span>📊</span> Dashboard
-                </a>
-                <a href="#" class="nav-item" data-section="alerts">
-                    <span>⚠️</span> Alerts & Reminders
-                    <span class="badge" id="alertsBadge">0</span>
-                </a>
-                <a href="#" class="nav-item" data-section="trucks">
-                    <span>🚛</span> Trucks
-                </a>
-                <a href="#" class="nav-item" data-section="trips">
-                    <span>🛣️</span> Trips
-                </a>
-                <a href="#" class="nav-item" data-section="drivers">
-                    <span>👤</span> Drivers
-                </a>
-                <a href="#" class="nav-item" data-section="documents">
-                    <span>📄</span> Documents
-                </a>
-                <a href="#" class="nav-item" data-section="emi">
-                    <span>💰</span> Truck EMI
-                </a>
-                <a href="#" class="nav-item" data-section="itr">
-                    <span>📋</span> ITR
-                </a>
-                <a href="#" class="nav-item" data-section="alarm">
-                    <span>⏰</span> Alarm
-                </a>
-                <a href="#" class="nav-item" data-section="notes">
-                    <span>📝</span> Notes
-                </a>
-                <a href="#" class="nav-item" data-section="about">
-                    <span>ℹ️</span> About Us
-                </a>
-            </nav>
-            <button id="saveChanges" class="btn btn--primary save-btn">💾 Save Changes</button>
-        </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" data-section="dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" data-section="trips"><i class="fas fa-route"></i> Trip Management</a></li>
+                <li><a href="#" data-section="trucks"><i class="fas fa-truck"></i> Truck Management</a></li>
+                <li><a href="#" data-section="drivers"><i class="fas fa-users"></i> Driver Management</a></li>
+                <li><a href="#" data-section="expenses"><i class="fas fa-receipt"></i> Expenses</a></li>
+                <li><a href="#" data-section="services"><i class="fas fa-wrench"></i> Servicing</a></li>
+                <li><a href="#" data-section="emis"><i class="fas fa-credit-card"></i> EMI Tracking</a></li>
+                <li><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> Documents</a></li>
+                <li><a href="#" data-section="export"><i class="fas fa-download"></i> Export/Import</a></li>
+            </ul>
+        </nav>
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Top Bar -->
-            <header class="top-bar">
-                <h1 id="pageTitle">Dashboard</h1>
-                <div class="user-actions">
-                    <span class="user-name">Welcome, Admin</span>
-                    <button id="logoutBtn" class="btn btn--outline btn--sm">Logout</button>
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="user-profile">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Admin</span>
+                    </div>
                 </div>
             </header>
 
-            <!-- Dashboard Section -->
-            <div id="dashboardSection" class="section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <h3 id="totalProfit">₹0</h3>
-                            <p>Total Profit</p>
+            <!-- Content Sections -->
+            <main class="content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-route"></i></div>
+                            <div class="stat-content">
+                                <h3 id="total-trips">0</h3>
+                                <p>Total Trips</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🛣️</div>
-                        <div class="stat-content">
-                            <h3 id="totalTrips">0</h3>
-                            <p>Total Trips</p>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-truck"></i></div>
+                            <div class="stat-content">
+                                <h3 id="active-trucks">0</h3>
+                                <p>Active Trucks</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🚛</div>
-                        <div class="stat-content">
-                            <h3 id="activetrucks">0</h3>
-                            <p>Active Trucks</p>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-content">
+                                <h3 id="total-drivers">0</h3>
+                                <p>Drivers</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-content">
-                            <h3 id="completedTrips">0</h3>
-                            <p>Completed Trips</p>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                            <div class="stat-content">
+                                <h3 id="monthly-expenses">₹0</h3>
+                                <p>Monthly Expenses</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="charts-grid">
-                    <div class="chart-container" style="position: relative; height: 300px;">
-                        <canvas id="profitChart"></canvas>
-                    </div>
-                    <div class="chart-container" style="position: relative; height: 300px;">
-                        <canvas id="tripsChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Alerts Section -->
-            <div id="alertsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Alerts & Reminders</h2>
-                    <button class="btn btn--primary" onclick="openModal('alertModal')">Add Alert</button>
-                </div>
-                <div id="alertsList" class="alerts-list"></div>
-            </div>
-
-            <!-- Trucks Section -->
-            <div id="trucksSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Trucks</h2>
-                    <button class="btn btn--primary" onclick="openModal('truckModal')">Add Truck</button>
-                </div>
-                <div id="trucksList" class="trucks-grid"></div>
-            </div>
-
-            <!-- Trips Section -->
-            <div id="tripsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Trips</h2>
-                    <button class="btn btn--primary" onclick="openModal('tripModal')">Add Trip</button>
-                    <button class="btn btn--secondary" onclick="exportToExcel('trips')">Export Excel</button>
-                </div>
-                <div id="tripsList" class="trips-list"></div>
-            </div>
-
-            <!-- Drivers Section -->
-            <div id="driversSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Drivers</h2>
-                    <button class="btn btn--primary" onclick="openModal('driverModal')">Add Driver</button>
-                </div>
-                <div id="driversList" class="drivers-grid"></div>
-            </div>
-
-            <!-- Documents Section -->
-            <div id="documentsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Documents</h2>
-                    <button class="btn btn--primary" onclick="openModal('documentModal')">Upload Document</button>
-                </div>
-                <div id="documentsList" class="documents-list"></div>
-            </div>
-
-            <!-- EMI Section -->
-            <div id="emiSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Truck EMI</h2>
-                    <button class="btn btn--primary" onclick="openModal('emiModal')">Add EMI Payment</button>
-                </div>
-                <div id="emiList" class="emi-list"></div>
-            </div>
-
-            <!-- ITR Section -->
-            <div id="itrSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Income Tax Returns</h2>
-                    <button class="btn btn--primary" onclick="openModal('itrModal')">Add ITR Record</button>
-                </div>
-                <div id="itrList" class="itr-list"></div>
-            </div>
-
-            <!-- Alarm Section -->
-            <div id="alarmSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Alarms & Tasks</h2>
-                    <button class="btn btn--primary" onclick="openModal('alarmModal')">Add Alarm</button>
-                </div>
-                <div id="alarmList" class="alarm-list"></div>
-            </div>
-
-            <!-- Notes Section -->
-            <div id="notesSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Notes</h2>
-                    <button class="btn btn--primary" onclick="openModal('noteModal')">Add Note</button>
-                    <input type="text" id="notesSearch" class="form-control" placeholder="Search notes..." style="width: 200px; margin-left: auto;">
-                </div>
-                <div id="notesList" class="notes-grid"></div>
-            </div>
-
-            <!-- About Section -->
-            <div id="aboutSection" class="section hidden">
-                <div class="section-header">
-                    <h2>About Us</h2>
-                </div>
-                <div class="about-content">
-                    <div class="card">
-                        <div class="card__body">
-                            <h3>DTS Trucking Cargo</h3>
-                            <p>Professional truck transport business management system designed for efficient logistics operations.</p>
-                            <div class="owner-profiles">
-                                <h4>Owner Profile</h4>
-                                <div class="profile-card">
-                                    <div class="profile-avatar">👤</div>
-                                    <div class="profile-info">
-                                        <h5>Damayanti</h5>
-                                        <p>Business Owner</p>
-                                        <p>📞 Contact: +91 9876543210</p>
-                                        <p>📧 Email: damayanti@dts.com</p>
-                                    </div>
-                                </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
+                            <div class="stat-content">
+                                <h3 id="upcoming-emis">0</h3>
+                                <p>Upcoming EMIs</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-wrench"></i></div>
+                            <div class="stat-content">
+                                <h3 id="pending-services">0</h3>
+                                <p>Pending Services</p>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modals -->
-    <!-- Alert Modal -->
-    <div id="alertModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Alert</h3>
-                <button class="modal-close" onclick="closeModal('alertModal')">&times;</button>
-            </div>
-            <form id="alertForm">
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" id="alertTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea id="alertDescription" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" id="alertDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select id="alertPriority" class="form-control">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Alert</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Truck Modal -->
-    <div id="truckModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Truck</h3>
-                <button class="modal-close" onclick="closeModal('truckModal')">&times;</button>
-            </div>
-            <form id="truckForm">
-                <div class="form-group">
-                    <label class="form-label">Truck Number</label>
-                    <input type="text" id="truckNumber" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Type</label>
-                    <input type="text" id="truckType" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Capacity</label>
-                    <input type="text" id="truckCapacity" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select id="truckStatus" class="form-control">
-                        <option value="Active">Active</option>
-                        <option value="Idle">Idle</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Truck</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Trip Modal -->
-    <div id="tripModal" class="modal hidden">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3>Add Trip</h3>
-                <button class="modal-close" onclick="closeModal('tripModal')">&times;</button>
-            </div>
-            <form id="tripForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Truck</label>
-                        <select id="tripTruck" class="form-control" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Driver</label>
-                        <select id="tripDriver" class="form-control" required></select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Item Carried</label>
-                    <input type="text" id="tripItem" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Weight (tons)</label>
-                    <input type="text" id="tripWeight" class="form-control" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">From</label>
-                        <input type="text" id="tripFrom" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">To</label>
-                        <input type="text" id="tripTo" class="form-control" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" id="tripStartDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">End Date</label>
-                        <input type="date" id="tripEndDate" class="form-control" required>
-                    </div>
-                </div>
-                <div class="expenses-section">
-                    <h4>Expenses</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Fuel (₹)</label>
-                            <input type="number" id="tripFuel" class="form-control" value="0">
+                    <div class="charts-grid">
+                        <div class="chart-container" style="position: relative; height: 400px;">
+                            <h3>Monthly Expenses Trend</h3>
+                            <canvas id="expenses-chart"></canvas>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">DEF Oil (₹)</label>
-                            <input type="number" id="tripDef" class="form-control" value="0">
+                        <div class="chart-container" style="position: relative; height: 400px;">
+                            <h3>Trips per Truck</h3>
+                            <canvas id="trips-chart"></canvas>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Food (₹)</label>
-                            <input type="number" id="tripFood" class="form-control" value="0">
+                        <div class="chart-container" style="position: relative; height: 400px;">
+                            <h3>Expense Breakdown</h3>
+                            <canvas id="expense-breakdown-chart"></canvas>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Line (₹)</label>
-                            <input type="number" id="tripLine" class="form-control" value="0">
+                </section>
+
+                <!-- Trip Management Section -->
+                <section id="trips-section" class="section">
+                    <div class="section-header">
+                        <h2>Trip Management</h2>
+                        <button class="btn btn--primary" id="add-trip-btn">
+                            <i class="fas fa-plus"></i> Add Trip
+                        </button>
+                    </div>
+                    <div class="filters">
+                        <input type="text" id="trip-search" class="form-control" placeholder="Search trips...">
+                        <select id="trip-filter-truck" class="form-control">
+                            <option value="">All Trucks</option>
+                        </select>
+                        <select id="trip-filter-status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="Planned">Planned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table id="trips-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Trip ID</th>
+                                    <th>Truck</th>
+                                    <th>Driver</th>
+                                    <th>Route</th>
+                                    <th>Date</th>
+                                    <th>Distance</th>
+                                    <th>Freight</th>
+                                    <th>Expenses</th>
+                                    <th>Profit</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Truck Management Section -->
+                <section id="trucks-section" class="section">
+                    <div class="section-header">
+                        <h2>Truck Management</h2>
+                        <button class="btn btn--primary" id="add-truck-btn">
+                            <i class="fas fa-plus"></i> Add Truck
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="trucks-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Truck Number</th>
+                                    <th>Model</th>
+                                    <th>Purchase Date</th>
+                                    <th>Insurance Expiry</th>
+                                    <th>EMI Amount</th>
+                                    <th>Next Service</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Driver Management Section -->
+                <section id="drivers-section" class="section">
+                    <div class="section-header">
+                        <h2>Driver Management</h2>
+                        <button class="btn btn--primary" id="add-driver-btn">
+                            <i class="fas fa-plus"></i> Add Driver
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="drivers-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>License No</th>
+                                    <th>Phone</th>
+                                    <th>Address</th>
+                                    <th>Joining Date</th>
+                                    <th>Assigned Truck</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Expenses Section -->
+                <section id="expenses-section" class="section">
+                    <div class="section-header">
+                        <h2>Expenses Tracking</h2>
+                        <button class="btn btn--primary" id="add-expense-btn">
+                            <i class="fas fa-plus"></i> Add Expense
+                        </button>
+                    </div>
+                    <div class="filters">
+                        <input type="text" id="expense-search" class="form-control" placeholder="Search expenses...">
+                        <select id="expense-filter-category" class="form-control">
+                            <option value="">All Categories</option>
+                        </select>
+                        <input type="date" id="expense-filter-from" class="form-control">
+                        <input type="date" id="expense-filter-to" class="form-control">
+                    </div>
+                    <div class="table-container">
+                        <table id="expenses-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Truck</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Services Section -->
+                <section id="services-section" class="section">
+                    <div class="section-header">
+                        <h2>Servicing & Maintenance</h2>
+                        <button class="btn btn--primary" id="add-service-btn">
+                            <i class="fas fa-plus"></i> Add Service</                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="services-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Truck</th>
+                                    <th>Service Date</th>
+                                    <th>Service Type</th>
+                                    <th>Cost</th>
+                                    <th>Next Service</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- EMI Section -->
+                <section id="emis-section" class="section">
+                    <div class="section-header">
+                        <h2>EMI Tracking</h2>
+                        <button class="btn btn--primary" id="add-emi-btn">
+                            <i class="fas fa-plus"></i> Add EMI
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="emis-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Truck</th>
+                                    <th>Bank Name</th>
+                                    <th>EMI Amount</th>
+                                    <th>EMI Date</th>
+                                    <th>Total EMIs</th>
+                                    <th>Remaining</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Documents Section -->
+                <section id="documents-section" class="section">
+                    <div class="section-header">
+                        <h2>Documents Management</h2>
+                        <button class="btn btn--primary" id="add-document-btn">
+                            <i class="fas fa-plus"></i> Add Document
+                        </button>
+                    </div>
+                    <div class="filters">
+                        <input type="text" id="document-search" class="form-control" placeholder="Search documents...">
+                        <select id="document-filter-category" class="form-control">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div id="documents-grid" class="documents-grid"></div>
+                </section>
+
+                <!-- Export/Import Section -->
+                <section id="export-section" class="section">
+                    <div class="section-header">
+                        <h2>Data Export/Import</h2>
+                    </div>
+                    <div class="export-import-container">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Export Data</h3>
+                                <p>Download all your data as a JSON file for backup purposes.</p>
+                                <button class="btn btn--primary" id="export-data-btn">
+                                    <i class="fas fa-download"></i> Export All Data
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Toll (₹)</label>
-                            <input type="number" id="tripToll" class="form-control" value="0">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Import Data</h3>
+                                <p>Import previously exported data to restore your information.</p>
+                                <input type="file" id="import-file" accept=".json" class="form-control">
+                                <button class="btn btn--primary" id="import-data-btn">
+                                    <i class="fas fa-upload"></i> Import Data
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Revenue (₹)</label>
-                            <input type="number" id="tripRevenue" class="form-control" required>
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Clear All Data</h3>
+                                <p class="status--warning">Warning: This will permanently delete all data.</p>
+                                <button class="btn btn--outline" id="clear-data-btn" style="color: var(--color-error); border-color: var(--color-error);">
+                                    <i class="fas fa-trash"></i> Clear All Data
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="tripRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Trip</button>
-            </form>
+                </section>
+            </main>
         </div>
     </div>
 
-    <!-- Driver Modal -->
-    <div id="driverModal" class="modal hidden">
+    <!-- Modal Container -->
+    <div id="modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Add Driver</h3>
-                <button class="modal-close" onclick="closeModal('driverModal')">&times;</button>
+                <h3 id="modal-title">Modal Title</h3>
+                <button class="modal-close">&times;</button>
             </div>
-            <form id="driverForm">
-                <div class="form-group">
-                    <label class="form-label">Name</label>
-                    <input type="text" id="driverName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="tel" id="driverPhone" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">License Number</label>
-                    <input type="text" id="driverLicense" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="driverRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Driver</button>
-            </form>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamic content will be inserted here -->
+            </div>
         </div>
     </div>
 
-    <!-- Document Modal -->
-    <div id="documentModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Upload Document</h3>
-                <button class="modal-close" onclick="closeModal('documentModal')">&times;</button>
-            </div>
-            <form id="documentForm">
-                <div class="form-group">
-                    <label class="form-label">Document Name</label>
-                    <input type="text" id="documentName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Document Type</label>
-                    <select id="documentType" class="form-control" required>
-                        <option value="">Select Type</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Fitness">Fitness Certificate</option>
-                        <option value="Road Tax">Road Tax</option>
-                        <option value="Income Tax">Income Tax</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Truck</label>
-                    <select id="documentTruck" class="form-control" required></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Expiry Date</label>
-                    <input type="date" id="documentExpiry" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="documentRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Document</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- EMI Modal -->
-    <div id="emiModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add EMI Payment</h3>
-                <button class="modal-close" onclick="closeModal('emiModal')">&times;</button>
-            </div>
-            <form id="emiForm">
-                <div class="form-group">
-                    <label class="form-label">Truck</label>
-                    <select id="emiTruck" class="form-control" required></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Monthly Amount (₹)</label>
-                    <input type="number" id="emiAmount" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Payment Date</label>
-                    <input type="date" id="emiDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total EMI Amount (₹)</label>
-                    <input type="number" id="emiTotal" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn--primary">Save EMI Payment</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ITR Modal -->
-    <div id="itrModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add ITR Record</h3>
-                <button class="modal-close" onclick="closeModal('itrModal')">&times;</button>
-            </div>
-            <form id="itrForm">
-                <div class="form-group">
-                    <label class="form-label">Financial Year</label>
-                    <input type="text" id="itrYear" class="form-control" placeholder="2023-24" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total Income (₹)</label>
-                    <input type="number" id="itrIncome" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total Expenses (₹)</label>
-                    <input type="number" id="itrExpenses" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tax Paid (₹)</label>
-                    <input type="number" id="itrTax" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="itrRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save ITR Record</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Alarm Modal -->
-    <div id="alarmModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Alarm</h3>
-                <button class="modal-close" onclick="closeModal('alarmModal')">&times;</button>
-            </div>
-            <form id="alarmForm">
-                <div class="form-group">
-                    <label class="form-label">Task Title</label>
-                    <input type="text" id="alarmTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea id="alarmDescription" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Date</label>
-                        <input type="date" id="alarmDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Time</label>
-                        <input type="time" id="alarmTime" class="form-control" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select id="alarmPriority" class="form-control">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Alarm</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Note Modal -->
-    <div id="noteModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Note</h3>
-                <button class="modal-close" onclick="closeModal('noteModal')">&times;</button>
-            </div>
-            <form id="noteForm">
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" id="noteTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Content</label>
-                    <textarea id="noteContent" class="form-control" rows="6" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Category</label>
-                    <select id="noteCategory" class="form-control">
-                        <option value="General">General</option>
-                        <option value="Business">Business</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Important">Important</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Note</button>
-            </form>
-        </div>
-    </div>
+    <!-- Notification Container -->
+    <div id="notifications" class="notifications"></div>
 
     <script src="app.js"></script>
 </body>
