@@ -1,1472 +1,1043 @@
-// Global Variables
-let currentUser = null;
-let appData = {
-    trucks: [],
-    drivers: [],
-    trips: [],
-    documents: [],
-    emiRecords: [],
-    alerts: [],
-    itrRecords: [],
-    alarms: [],
-    notes: []
-};
+// DTS Truck Management System - Main Application JavaScript
 
-// Initialize App
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
-
-function initializeApp() {
-    loadDataFromStorage();
-    setupEventListeners();
-    
-    // Show video screen first
-    document.getElementById('videoScreen').classList.remove('hidden');
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainApp').classList.add('hidden');
-    
-    startVideoSequence();
-}
-
-// Video and Login Flow
-function startVideoSequence() {
-    const videoScreen = document.getElementById('videoScreen');
-    const loginScreen = document.getElementById('loginScreen');
-    const skipBtn = document.getElementById('skipVideo');
-    const loadingFallback = document.querySelector('.loading-fallback');
-
-    // Show loading fallback after 5 seconds if video doesn't load properly
-    const fallbackTimer = setTimeout(() => {
-        document.querySelector('.video-container').classList.add('hidden');
-        loadingFallback.classList.remove('hidden');
+class DTSApp {
+    constructor() {
+        this.currentSection = 'dashboard';
+        this.charts = {};
+        this.data = {
+            trips: [],
+            trucks: [],
+            drivers: [],
+            expenses: [],
+            services: [],
+            emis: [],
+            documents: []
+        };
         
-        // Auto-skip after 3 more seconds
-        setTimeout(() => {
-            showLoginScreen();
-        }, 3000);
-    }, 5000);
-
-    // Skip button handler
-    skipBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        clearTimeout(fallbackTimer);
-        showLoginScreen();
-    });
-
-    // Auto-advance after video duration (assume 15 seconds)
-    setTimeout(() => {
-        if (!loginScreen.classList.contains('hidden')) return; // Already advanced
-        clearTimeout(fallbackTimer);
-        showLoginScreen();
-    }, 15000);
-
-    function showLoginScreen() {
-        videoScreen.classList.add('hidden');
-        loginScreen.classList.remove('hidden');
-        
-        // Focus on username field
-        setTimeout(() => {
-            document.getElementById('username').focus();
-        }, 100);
-    }
-}
-
-// Event Listeners Setup
-function setupEventListeners() {
-    // Login form - use proper event handling
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const section = item.dataset.section;
-            navigateToSection(section);
-        });
-    });
-
-    // Sidebar toggle
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
-    }
-    
-    // Logout
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
-    }
-    
-    // Save changes
-    const saveBtn = document.getElementById('saveChanges');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', saveDataToStorage);
-    }
-    
-    // Forms
-    setupFormListeners();
-    
-    // Search functionality
-    const notesSearch = document.getElementById('notesSearch');
-    if (notesSearch) {
-        notesSearch.addEventListener('input', searchNotes);
-    }
-}
-
-function setupFormListeners() {
-    // Alert form
-    const alertForm = document.getElementById('alertForm');
-    if (alertForm) {
-        alertForm.addEventListener('submit', handleAlertForm);
-    }
-    
-    // Truck form
-    const truckForm = document.getElementById('truckForm');
-    if (truckForm) {
-        truckForm.addEventListener('submit', handleTruckForm);
-    }
-    
-    // Trip form
-    const tripForm = document.getElementById('tripForm');
-    if (tripForm) {
-        tripForm.addEventListener('submit', handleTripForm);
-    }
-    
-    // Driver form
-    const driverForm = document.getElementById('driverForm');
-    if (driverForm) {
-        driverForm.addEventListener('submit', handleDriverForm);
-    }
-    
-    // Document form
-    const documentForm = document.getElementById('documentForm');
-    if (documentForm) {
-        documentForm.addEventListener('submit', handleDocumentForm);
-    }
-    
-    // EMI form
-    const emiForm = document.getElementById('emiForm');
-    if (emiForm) {
-        emiForm.addEventListener('submit', handleEMIForm);
-    }
-    
-    // ITR form
-    const itrForm = document.getElementById('itrForm');
-    if (itrForm) {
-        itrForm.addEventListener('submit', handleITRForm);
-    }
-    
-    // Alarm form
-    const alarmForm = document.getElementById('alarmForm');
-    if (alarmForm) {
-        alarmForm.addEventListener('submit', handleAlarmForm);
-    }
-    
-    // Note form
-    const noteForm = document.getElementById('noteForm');
-    if (noteForm) {
-        noteForm.addEventListener('submit', handleNoteForm);
-    }
-}
-
-// Authentication
-function handleLogin(e) {
-    e.preventDefault();
-    
-    const usernameField = document.getElementById('username');
-    const passwordField = document.getElementById('password');
-    const errorDiv = document.getElementById('loginError');
-    
-    if (!usernameField || !passwordField) return;
-    
-    const username = usernameField.value.trim();
-    const password = passwordField.value.trim();
-    
-    // Hide any previous error
-    errorDiv.classList.add('hidden');
-    
-    // Validate credentials
-    if (username === 'Damayanti2023' && password === '02092007') {
-        currentUser = { username: username };
-        
-        // Hide login screen and show main app
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        
-        // Initialize the application
-        initializeDashboard();
-        populateDropdowns();
-        navigateToSection('dashboard');
-        
-    } else {
-        // Show error message
-        errorDiv.classList.remove('hidden');
-        
-        // Clear password field
-        passwordField.value = '';
-        passwordField.focus();
-        
-        // Hide error after 3 seconds
-        setTimeout(() => {
-            errorDiv.classList.add('hidden');
-        }, 3000);
-    }
-}
-
-function logout() {
-    currentUser = null;
-    document.getElementById('mainApp').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
-    
-    // Clear form fields
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    
-    // Focus username field
-    setTimeout(() => {
-        document.getElementById('username').focus();
-    }, 100);
-}
-
-// Navigation
-function navigateToSection(sectionName) {
-    // Hide all sections
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.add('hidden');
-    });
-    
-    // Remove active class from all nav items
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Show selected section
-    const targetSection = document.getElementById(sectionName + 'Section');
-    if (targetSection) {
-        targetSection.classList.remove('hidden');
-    }
-    
-    // Add active class to clicked nav item
-    const activeNav = document.querySelector(`[data-section="${sectionName}"]`);
-    if (activeNav) {
-        activeNav.classList.add('active');
-    }
-    
-    // Update page title
-    const titles = {
-        dashboard: 'Dashboard',
-        alerts: 'Alerts & Reminders',
-        trucks: 'Trucks',
-        trips: 'Trips',
-        drivers: 'Drivers',
-        documents: 'Documents',
-        emi: 'Truck EMI',
-        itr: 'Income Tax Returns',
-        alarm: 'Alarms & Tasks',
-        notes: 'Notes',
-        about: 'About Us'
-    };
-    
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-        pageTitle.textContent = titles[sectionName] || 'Dashboard';
-    }
-    
-    // Load section specific data
-    loadSectionData(sectionName);
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-    }
-}
-
-// Data Management
-function loadDataFromStorage() {
-    try {
-        const savedData = localStorage.getItem('dtsAppData');
-        if (savedData) {
-            appData = JSON.parse(savedData);
-        } else {
-            initializeSampleData();
-        }
-    } catch (error) {
-        console.error('Error loading data:', error);
-        initializeSampleData();
-    }
-}
-
-function saveDataToStorage() {
-    try {
-        localStorage.setItem('dtsAppData', JSON.stringify(appData));
-        
-        // Show save confirmation
-        const saveBtn = document.getElementById('saveChanges');
-        if (saveBtn) {
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = '✅ Saved!';
-            saveBtn.style.background = '#22c55e';
-            
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.style.background = '';
-            }, 2000);
-        }
-    } catch (error) {
-        console.error('Error saving data:', error);
-        alert('Failed to save data. Please try again.');
-    }
-}
-
-function initializeSampleData() {
-    appData = {
-        trucks: [
-            {
-                id: 1,
-                number: "TN-01-AB-1234",
-                type: "Container Truck",
-                capacity: "25 tons",
-                status: "Active"
-            },
-            {
-                id: 2,
-                number: "TN-02-CD-5678",
-                type: "Trailer Truck",
-                capacity: "40 tons",
-                status: "Idle"
-            }
-        ],
-        drivers: [
-            {
-                id: 1,
-                name: "Ravi Kumar",
-                phone: "9876543210",
-                license: "TN123456789",
-                totalSalary: 45000,
-                remarks: "Experienced driver"
-            },
-            {
-                id: 2,
-                name: "Suresh Babu",
-                phone: "9876543211",
-                license: "TN987654321",
-                totalSalary: 38000,
-                remarks: "New driver"
-            }
-        ],
-        trips: [
-            {
-                id: 1,
-                truckId: 1,
-                driverId: 1,
-                item: "Electronics",
-                weight: "15 tons",
-                from: "Chennai",
-                to: "Bangalore",
-                startDate: "2024-08-01",
-                endDate: "2024-08-03",
-                expenses: {
-                    fuel: 8000,
-                    def: 500,
-                    food: 1200,
-                    line: 300,
-                    toll: 800
-                },
-                revenue: 25000,
-                profit: 14200,
-                remarks: "Successful delivery"
-            }
-        ],
-        documents: [
-            {
-                id: 1,
-                name: "Insurance Certificate",
-                type: "Insurance",
-                truckId: 1,
-                uploadDate: "2024-07-15",
-                expiryDate: "2025-07-15",
-                status: "Valid",
-                remarks: "Annual insurance"
-            }
-        ],
-        emiRecords: [
-            {
-                id: 1,
-                truckId: 1,
-                monthlyAmount: 25000,
-                totalAmount: 1200000,
-                paidAmount: 300000,
-                remainingAmount: 900000,
-                lastPaymentDate: "2024-08-01"
-            }
-        ],
-        alerts: [
-            {
-                id: 1,
-                title: "Insurance Renewal",
-                description: "Renew truck insurance for TN-01-AB-1234",
-                date: "2025-07-01",
-                priority: "High",
-                status: "Pending"
-            }
-        ],
-        itrRecords: [
-            {
-                id: 1,
-                year: "2023-24",
-                income: 1500000,
-                expenses: 1200000,
-                tax: 45000,
-                profit: 255000,
-                remarks: "Filed successfully"
-            }
-        ],
-        alarms: [
-            {
-                id: 1,
-                title: "Monthly EMI Payment",
-                description: "Pay EMI for Truck TN-01-AB-1234",
-                date: "2024-09-01",
-                time: "10:00",
-                priority: "High",
-                status: "Pending"
-            }
-        ],
-        notes: [
-            {
-                id: 1,
-                title: "Business Expansion Plans",
-                content: "Consider adding 2 more trucks by end of year. Research fuel-efficient models.",
-                category: "Business",
-                createdDate: "2024-08-26",
-                updatedDate: "2024-08-26"
-            }
-        ]
-    };
-}
-
-// Dashboard Functions
-function initializeDashboard() {
-    updateDashboardStats();
-    renderCharts();
-    updateAlertsBadge();
-}
-
-function updateDashboardStats() {
-    const totalProfit = appData.trips.reduce((sum, trip) => sum + (trip.profit || 0), 0);
-    const totalTrips = appData.trips.length;
-    const activeTrucks = appData.trucks.filter(truck => truck.status === 'Active').length;
-    const completedTrips = appData.trips.filter(trip => trip.endDate && new Date(trip.endDate) <= new Date()).length;
-    
-    const totalProfitEl = document.getElementById('totalProfit');
-    const totalTripsEl = document.getElementById('totalTrips');
-    const activeTrucksEl = document.getElementById('activetrucks');
-    const completedTripsEl = document.getElementById('completedTrips');
-    
-    if (totalProfitEl) totalProfitEl.textContent = `₹${totalProfit.toLocaleString()}`;
-    if (totalTripsEl) totalTripsEl.textContent = totalTrips;
-    if (activeTrucksEl) activeTrucksEl.textContent = activeTrucks;
-    if (completedTripsEl) completedTripsEl.textContent = completedTrips;
-}
-
-function renderCharts() {
-    setTimeout(() => {
-        renderProfitChart();
-        renderTripsChart();
-    }, 100); // Small delay to ensure DOM is ready
-}
-
-function renderProfitChart() {
-    const canvas = document.getElementById('profitChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Clear any existing chart
-    if (window.profitChartInstance) {
-        window.profitChartInstance.destroy();
-    }
-    
-    // Calculate monthly data
-    const monthlyData = {};
-    appData.trips.forEach(trip => {
-        if (trip.startDate) {
-            const month = new Date(trip.startDate).toLocaleString('default', { month: 'short', year: '2-digit' });
-            if (!monthlyData[month]) {
-                monthlyData[month] = { revenue: 0, expenses: 0 };
-            }
-            monthlyData[month].revenue += trip.revenue || 0;
-            const totalExpenses = Object.values(trip.expenses || {}).reduce((sum, exp) => sum + exp, 0);
-            monthlyData[month].expenses += totalExpenses;
-        }
-    });
-    
-    const labels = Object.keys(monthlyData);
-    const revenues = labels.map(label => monthlyData[label].revenue);
-    const expenses = labels.map(label => monthlyData[label].expenses);
-    
-    // If no data, show sample data
-    if (labels.length === 0) {
-        labels.push('Aug 24');
-        revenues.push(25000);
-        expenses.push(10800);
-    }
-    
-    window.profitChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Revenue',
-                    data: revenues,
-                    backgroundColor: '#1FB8CD'
-                },
-                {
-                    label: 'Expenses',
-                    data: expenses,
-                    backgroundColor: '#FFC185'
-                }
+        // Sample data for initial setup
+        this.sampleData = {
+            trips: [
+                {"id": 1, "truckId": "TN01AB1234", "driverName": "Raj Kumar", "startLocation": "Chennai", "destination": "Bangalore", "startDate": "2024-08-20", "endDate": "2024-08-22", "distance": 350, "freightAmount": 25000, "expenses": 8000, "profit": 17000, "status": "Completed"},
+                {"id": 2, "truckId": "TN02CD5678", "driverName": "Suresh Babu", "startLocation": "Mumbai", "destination": "Pune", "startDate": "2024-08-25", "endDate": "2024-08-26", "distance": 150, "freightAmount": 12000, "expenses": 4000, "profit": 8000, "status": "In Progress"}
+            ],
+            trucks: [
+                {"id": "TN01AB1234", "model": "Tata LPT 2518", "purchaseDate": "2023-05-15", "insuranceExpiry": "2025-12-30", "emiAmount": 45000, "nextServiceDate": "2025-09-15", "status": "Active"},
+                {"id": "TN02CD5678", "model": "Ashok Leyland 2820", "purchaseDate": "2022-08-20", "insuranceExpiry": "2025-10-15", "emiAmount": 38000, "nextServiceDate": "2025-09-05", "status": "Active"}
+            ],
+            drivers: [
+                {"id": 1, "name": "Raj Kumar", "licenseNo": "TN1234567890", "phoneNo": "+91-9876543210", "address": "123 Main Street, Chennai", "joiningDate": "2023-01-15", "assignedTruck": "TN01AB1234", "status": "Active"},
+                {"id": 2, "name": "Suresh Babu", "licenseNo": "TN0987654321", "phoneNo": "+91-8765432109", "address": "456 Park Road, Mumbai", "joiningDate": "2022-06-20", "assignedTruck": "TN02CD5678", "status": "Active"}
+            ],
+            expenses: [
+                {"id": 1, "date": "2024-08-20", "category": "Fuel", "amount": 5000, "description": "Diesel for Chennai-Bangalore trip", "truckId": "TN01AB1234"},
+                {"id": 2, "date": "2024-08-22", "category": "Tolls", "amount": 1200, "description": "Highway tolls", "truckId": "TN01AB1234"},
+                {"id": 3, "date": "2024-08-15", "category": "Maintenance", "amount": 8000, "description": "Engine service", "truckId": "TN02CD5678"}
             ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Revenue vs Expenses'
+        };
+
+        this.expenseCategories = ["Fuel", "Maintenance", "Tolls", "Salaries", "Insurance", "Others"];
+        this.serviceTypes = ["Oil Change", "Tire Replacement", "Engine Repair", "Body Work", "Inspection", "Others"];
+        this.documentCategories = ["Insurance", "Registration", "License", "Invoice", "Receipt", "Others"];
+
+        // Initialize immediately
+        this.init();
+    }
+
+    init() {
+        this.loadData();
+        this.setupIntroVideo();
+    }
+
+    setupIntroVideo() {
+        const introScreen = document.getElementById('intro-screen');
+        const mainApp = document.getElementById('main-app');
+        const introVideo = document.getElementById('intro-video');
+        const skipBtn = document.getElementById('skip-intro');
+
+        const showMainApp = () => {
+            console.log('Showing main app...');
+            introScreen.style.opacity = '0';
+            setTimeout(() => {
+                introScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                
+                // Setup the application after showing it
+                setTimeout(() => {
+                    this.setupEventListeners();
+                    this.updateDashboard();
+                    this.initializeCharts();
+                    console.log('Application initialized successfully');
+                }, 100);
+            }, 500);
+        };
+
+        // Handle video end
+        if (introVideo) {
+            introVideo.addEventListener('ended', showMainApp);
+            
+            // Handle video error (when intro.mp4 doesn't exist)
+            introVideo.addEventListener('error', () => {
+                console.log('Video failed to load, showing fallback');
+                setTimeout(showMainApp, 3000);
+            });
+        }
+
+        // Handle skip button
+        if (skipBtn) {
+            skipBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Skip button clicked');
+                showMainApp();
+            });
+        }
+
+        // Auto-show main app if video doesn't load after 5 seconds
+        setTimeout(() => {
+            if (!introScreen.classList.contains('hidden')) {
+                console.log('Auto-showing main app after timeout');
+                showMainApp();
+            }
+        }, 5000);
+    }
+
+    setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
+        // Navigation - Fix the event listeners
+        const navLinks = document.querySelectorAll('[data-section]');
+        console.log('Found navigation links:', navLinks.length);
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+                console.log('Navigating to section:', section);
+                this.switchSection(section);
+            });
+        });
+
+        // Modal close
+        const modalClose = document.querySelector('.modal-close');
+        if (modalClose) {
+            modalClose.addEventListener('click', () => {
+                this.closeModal();
+            });
+        }
+
+        const modal = document.getElementById('modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'modal') {
+                    this.closeModal();
+                }
+            });
+        }
+
+        // Sidebar toggle
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+
+        // Add buttons - Fix the event listeners
+        this.setupButtonListeners();
+
+        // Export/Import buttons
+        const exportBtn = document.getElementById('export-data-btn');
+        const importBtn = document.getElementById('import-data-btn');
+        const clearBtn = document.getElementById('clear-data-btn');
+
+        if (exportBtn) exportBtn.addEventListener('click', () => this.exportData());
+        if (importBtn) importBtn.addEventListener('click', () => this.importData());
+        if (clearBtn) clearBtn.addEventListener('click', () => this.clearAllData());
+
+        // Search and filters - Fix the event listeners
+        this.setupSearchListeners();
+        
+        console.log('Event listeners setup completed');
+    }
+
+    setupButtonListeners() {
+        const buttons = [
+            { id: 'add-trip-btn', handler: () => this.openTripModal() },
+            { id: 'add-truck-btn', handler: () => this.openTruckModal() },
+            { id: 'add-driver-btn', handler: () => this.openDriverModal() },
+            { id: 'add-expense-btn', handler: () => this.openExpenseModal() },
+            { id: 'add-service-btn', handler: () => this.openServiceModal() },
+            { id: 'add-emi-btn', handler: () => this.openEMIModal() },
+            { id: 'add-document-btn', handler: () => this.openDocumentModal() }
+        ];
+
+        buttons.forEach(({ id, handler }) => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', handler);
+                console.log('Button listener added for:', id);
+            }
+        });
+    }
+
+    setupSearchListeners() {
+        const searchInputs = [
+            { id: 'trip-search', handler: () => this.filterTrips() },
+            { id: 'trip-filter-truck', handler: () => this.filterTrips() },
+            { id: 'trip-filter-status', handler: () => this.filterTrips() },
+            { id: 'expense-search', handler: () => this.filterExpenses() },
+            { id: 'expense-filter-category', handler: () => this.filterExpenses() },
+            { id: 'expense-filter-from', handler: () => this.filterExpenses() },
+            { id: 'expense-filter-to', handler: () => this.filterExpenses() },
+            { id: 'document-search', handler: () => this.filterDocuments() },
+            { id: 'document-filter-category', handler: () => this.filterDocuments() }
+        ];
+
+        searchInputs.forEach(({ id, handler }) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', handler);
+                element.addEventListener('change', handler);
+            }
+        });
+    }
+
+    switchSection(section) {
+        console.log('Switching to section:', section);
+        
+        // Update navigation
+        document.querySelectorAll('[data-section]').forEach(link => {
+            link.classList.remove('active');
+        });
+        const activeLink = document.querySelector(`[data-section="${section}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+
+        // Update sections
+        document.querySelectorAll('.section').forEach(sec => {
+            sec.classList.remove('active');
+        });
+        const activeSection = document.getElementById(`${section}-section`);
+        if (activeSection) {
+            activeSection.classList.add('active');
+        }
+
+        // Update page title
+        const titles = {
+            dashboard: 'Dashboard',
+            trips: 'Trip Management',
+            trucks: 'Truck Management',
+            drivers: 'Driver Management',
+            expenses: 'Expenses Tracking',
+            services: 'Servicing & Maintenance',
+            emis: 'EMI Tracking',
+            documents: 'Documents Management',
+            export: 'Data Export/Import'
+        };
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+            pageTitle.textContent = titles[section] || 'Dashboard';
+        }
+
+        this.currentSection = section;
+
+        // Load section data
+        switch(section) {
+            case 'dashboard':
+                this.updateDashboard();
+                break;
+            case 'trips':
+                this.loadTrips();
+                break;
+            case 'trucks':
+                this.loadTrucks();
+                break;
+            case 'drivers':
+                this.loadDrivers();
+                break;
+            case 'expenses':
+                this.loadExpenses();
+                break;
+            case 'services':
+                this.loadServices();
+                break;
+            case 'emis':
+                this.loadEMIs();
+                break;
+            case 'documents':
+                this.loadDocuments();
+                break;
+        }
+    }
+
+    loadData() {
+        const saved = localStorage.getItem('dts_data');
+        if (saved) {
+            try {
+                this.data = JSON.parse(saved);
+                console.log('Data loaded from localStorage');
+            } catch (e) {
+                console.error('Error loading data:', e);
+                this.data = { ...this.sampleData, services: [], emis: [], documents: [] };
+            }
+        } else {
+            // Load sample data on first run
+            this.data = { ...this.sampleData, services: [], emis: [], documents: [] };
+            this.saveData();
+            console.log('Sample data loaded');
+        }
+    }
+
+    saveData() {
+        try {
+            localStorage.setItem('dts_data', JSON.stringify(this.data));
+            console.log('Data saved to localStorage');
+        } catch (e) {
+            console.error('Error saving data:', e);
+        }
+    }
+
+    updateDashboard() {
+        console.log('Updating dashboard...');
+        
+        // Update stats
+        const totalTripsEl = document.getElementById('total-trips');
+        const activetrucksEl = document.getElementById('active-trucks');
+        const totalDriversEl = document.getElementById('total-drivers');
+        const monthlyExpensesEl = document.getElementById('monthly-expenses');
+        const upcomingEmisEl = document.getElementById('upcoming-emis');
+        const pendingServicesEl = document.getElementById('pending-services');
+
+        if (totalTripsEl) totalTripsEl.textContent = this.data.trips.length;
+        if (activetrucksEl) activetrucksEl.textContent = this.data.trucks.filter(t => t.status === 'Active').length;
+        if (totalDriversEl) totalDriversEl.textContent = this.data.drivers.length;
+        
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyExpenses = this.data.expenses
+            .filter(e => {
+                const expenseDate = new Date(e.date);
+                return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, e) => sum + e.amount, 0);
+        if (monthlyExpensesEl) monthlyExpensesEl.textContent = `₹${monthlyExpenses.toLocaleString()}`;
+
+        // Calculate upcoming EMIs (next 30 days)
+        const today = new Date();
+        const next30Days = new Date(today);
+        next30Days.setDate(today.getDate() + 30);
+        const upcomingEMIs = this.data.emis.filter(emi => {
+            const emiDate = new Date(emi.emiDate);
+            return emiDate >= today && emiDate <= next30Days;
+        });
+        if (upcomingEmisEl) upcomingEmisEl.textContent = upcomingEMIs.length;
+
+        // Calculate pending services (next 30 days)
+        const pendingServices = this.data.services.filter(service => {
+            if (!service.nextServiceDate) return false;
+            const serviceDate = new Date(service.nextServiceDate);
+            return serviceDate >= today && serviceDate <= next30Days;
+        });
+        if (pendingServicesEl) pendingServicesEl.textContent = pendingServices.length;
+
+        console.log('Dashboard stats updated');
+    }
+
+    initializeCharts() {
+        console.log('Initializing charts...');
+        if (this.currentSection !== 'dashboard') return;
+        
+        // Destroy existing charts first
+        Object.keys(this.charts).forEach(key => {
+            if (this.charts[key]) {
+                this.charts[key].destroy();
+            }
+        });
+        
+        try {
+            this.createExpensesChart();
+            this.createTripsChart();
+            this.createExpenseBreakdownChart();
+            console.log('Charts initialized successfully');
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
+    }
+
+    createExpensesChart() {
+        const ctx = document.getElementById('expenses-chart');
+        if (!ctx) return;
+
+        // Get last 6 months of expenses
+        const labels = [];
+        const data = [];
+        const today = new Date();
+        
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const monthName = date.toLocaleString('default', { month: 'short' });
+            labels.push(monthName);
+            
+            const monthExpenses = this.data.expenses
+                .filter(e => {
+                    const expenseDate = new Date(e.date);
+                    return expenseDate.getMonth() === date.getMonth() && 
+                           expenseDate.getFullYear() === date.getFullYear();
+                })
+                .reduce((sum, e) => sum + e.amount, 0);
+            data.push(monthExpenses);
+        }
+
+        this.charts.expenses = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Expenses (₹)',
+                    data: data,
+                    borderColor: '#1FB8CD',
+                    backgroundColor: 'rgba(31, 184, 205, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-function renderTripsChart() {
-    const canvas = document.getElementById('tripsChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Clear any existing chart
-    if (window.tripsChartInstance) {
-        window.tripsChartInstance.destroy();
-    }
-    
-    // Calculate trips by truck
-    const truckTrips = {};
-    appData.trips.forEach(trip => {
-        const truck = appData.trucks.find(t => t.id === trip.truckId);
-        const truckName = truck ? truck.number : 'Unknown';
-        truckTrips[truckName] = (truckTrips[truckName] || 0) + 1;
-    });
-    
-    const labels = Object.keys(truckTrips);
-    const data = Object.values(truckTrips);
-    const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F'];
-    
-    // If no data, show sample data
-    if (labels.length === 0) {
-        labels.push('TN-01-AB-1234');
-        data.push(1);
-    }
-    
-    window.tripsChartInstance = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: colors.slice(0, labels.length)
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Trips by Truck'
+    createTripsChart() {
+        const ctx = document.getElementById('trips-chart');
+        if (!ctx) return;
+
+        // Count trips per truck
+        const truckTrips = {};
+        this.data.trucks.forEach(truck => {
+            truckTrips[truck.id] = this.data.trips.filter(trip => trip.truckId === truck.id).length;
+        });
+
+        const labels = Object.keys(truckTrips);
+        const data = Object.values(truckTrips);
+
+        this.charts.trips = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Trips Count',
+                    data: data,
+                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
                 }
             }
+        });
+    }
+
+    createExpenseBreakdownChart() {
+        const ctx = document.getElementById('expense-breakdown-chart');
+        if (!ctx) return;
+
+        // Calculate expenses by category
+        const categoryExpenses = {};
+        this.expenseCategories.forEach(category => {
+            categoryExpenses[category] = this.data.expenses
+                .filter(e => e.category === category)
+                .reduce((sum, e) => sum + e.amount, 0);
+        });
+
+        const labels = Object.keys(categoryExpenses);
+        const data = Object.values(categoryExpenses);
+
+        this.charts.expenseBreakdown = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ₹' + context.parsed.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Trips Management
+    loadTrips() {
+        console.log('Loading trips...');
+        const tbody = document.querySelector('#trips-table tbody');
+        const filterTruck = document.getElementById('trip-filter-truck');
+        
+        // Update truck filter options
+        if (filterTruck) {
+            filterTruck.innerHTML = '<option value="">All Trucks</option>';
+            this.data.trucks.forEach(truck => {
+                filterTruck.innerHTML += `<option value="${truck.id}">${truck.id}</option>`;
+            });
         }
-    });
-}
 
-function updateAlertsBadge() {
-    const alertsCount = appData.alerts.filter(alert => alert.status === 'Pending').length;
-    const badge = document.getElementById('alertsBadge');
-    if (badge) {
-        badge.textContent = alertsCount;
+        this.renderTrips();
     }
-}
 
-// Section Data Loading
-function loadSectionData(section) {
-    switch(section) {
-        case 'dashboard':
-            initializeDashboard();
-            break;
-        case 'alerts':
-            renderAlerts();
-            break;
-        case 'trucks':
-            renderTrucks();
-            break;
-        case 'trips':
-            renderTrips();
-            break;
-        case 'drivers':
-            renderDrivers();
-            break;
-        case 'documents':
-            renderDocuments();
-            break;
-        case 'emi':
-            renderEMIRecords();
-            break;
-        case 'itr':
-            renderITRRecords();
-            break;
-        case 'alarm':
-            renderAlarms();
-            break;
-        case 'notes':
-            renderNotes();
-            break;
-    }
-}
-
-// Alerts Section
-function renderAlerts() {
-    const container = document.getElementById('alertsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.alerts.forEach(alert => {
-        const alertDate = new Date(alert.date);
-        const today = new Date();
-        const isOverdue = alertDate < today && alert.status === 'Pending';
+    renderTrips(filteredTrips = null) {
+        const tbody = document.querySelector('#trips-table tbody');
+        if (!tbody) return;
         
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `list-item ${isOverdue ? 'overdue' : ''}`;
-        alertDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">${alert.title}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editAlert(${alert.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteAlert(${alert.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Description</span>
-                    <span class="field-value">${alert.description}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Date</span>
-                    <span class="field-value">${new Date(alert.date).toLocaleDateString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Priority</span>
-                    <span class="field-value status-badge status-${alert.priority.toLowerCase()}">${alert.priority}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Status</span>
-                    <span class="field-value">${alert.status}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(alertDiv);
-    });
-}
-
-function handleAlertForm(e) {
-    e.preventDefault();
-    
-    const alert = {
-        id: Date.now(),
-        title: document.getElementById('alertTitle').value,
-        description: document.getElementById('alertDescription').value,
-        date: document.getElementById('alertDate').value,
-        priority: document.getElementById('alertPriority').value,
-        status: 'Pending'
-    };
-    
-    appData.alerts.push(alert);
-    closeModal('alertModal');
-    renderAlerts();
-    updateAlertsBadge();
-    e.target.reset();
-}
-
-function deleteAlert(id) {
-    if (confirm('Are you sure you want to delete this alert?')) {
-        appData.alerts = appData.alerts.filter(alert => alert.id !== id);
-        renderAlerts();
-        updateAlertsBadge();
-    }
-}
-
-// Trucks Section
-function renderTrucks() {
-    const container = document.getElementById('trucksList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.trucks.forEach(truck => {
-        const truckDiv = document.createElement('div');
-        truckDiv.className = 'truck-card';
-        truckDiv.innerHTML = `
-            <div class="truck-header">
-                <div class="truck-avatar">🚛</div>
-                <div>
-                    <h3>${truck.number}</h3>
-                    <span class="status-badge status-${truck.status.toLowerCase()}">${truck.status}</span>
-                </div>
-            </div>
-            <div class="content-field">
-                <span class="field-label">Type</span>
-                <span class="field-value">${truck.type}</span>
-            </div>
-            <div class="content-field">
-                <span class="field-label">Capacity</span>
-                <span class="field-value">${truck.capacity}</span>
-            </div>
-            <div class="list-item-actions mt-16">
-                <button class="btn btn--sm" onclick="editTruck(${truck.id})">Edit</button>
-                <button class="btn btn--sm btn--outline" onclick="deleteTruck(${truck.id})">Delete</button>
-            </div>
-        `;
-        container.appendChild(truckDiv);
-    });
-}
-
-function handleTruckForm(e) {
-    e.preventDefault();
-    
-    const truck = {
-        id: Date.now(),
-        number: document.getElementById('truckNumber').value,
-        type: document.getElementById('truckType').value,
-        capacity: document.getElementById('truckCapacity').value,
-        status: document.getElementById('truckStatus').value
-    };
-    
-    appData.trucks.push(truck);
-    closeModal('truckModal');
-    renderTrucks();
-    populateDropdowns();
-    e.target.reset();
-}
-
-function deleteTruck(id) {
-    if (confirm('Are you sure you want to delete this truck?')) {
-        appData.trucks = appData.trucks.filter(truck => truck.id !== id);
-        renderTrucks();
-        populateDropdowns();
-    }
-}
-
-// Trips Section
-function renderTrips() {
-    const container = document.getElementById('tripsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.trips.forEach(trip => {
-        const truck = appData.trucks.find(t => t.id === trip.truckId);
-        const driver = appData.drivers.find(d => d.id === trip.driverId);
-        const totalExpenses = Object.values(trip.expenses || {}).reduce((sum, exp) => sum + exp, 0);
+        const trips = filteredTrips || this.data.trips;
         
-        const tripDiv = document.createElement('div');
-        tripDiv.className = 'list-item';
-        tripDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">${trip.from} → ${trip.to}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editTrip(${trip.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteTrip(${trip.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Truck</span>
-                    <span class="field-value">${truck ? truck.number : 'Unknown'}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Driver</span>
-                    <span class="field-value">${driver ? driver.name : 'Unknown'}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Item</span>
-                    <span class="field-value">${trip.item}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Weight</span>
-                    <span class="field-value">${trip.weight}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Start Date</span>
-                    <span class="field-value">${new Date(trip.startDate).toLocaleDateString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">End Date</span>
-                    <span class="field-value">${new Date(trip.endDate).toLocaleDateString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Revenue</span>
-                    <span class="field-value text-success">₹${(trip.revenue || 0).toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Expenses</span>
-                    <span class="field-value text-error">₹${totalExpenses.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Profit</span>
-                    <span class="field-value text-success">₹${((trip.revenue || 0) - totalExpenses).toLocaleString()}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(tripDiv);
-    });
-}
-
-function handleTripForm(e) {
-    e.preventDefault();
-    
-    const revenue = parseFloat(document.getElementById('tripRevenue').value) || 0;
-    const expenses = {
-        fuel: parseFloat(document.getElementById('tripFuel').value) || 0,
-        def: parseFloat(document.getElementById('tripDef').value) || 0,
-        food: parseFloat(document.getElementById('tripFood').value) || 0,
-        line: parseFloat(document.getElementById('tripLine').value) || 0,
-        toll: parseFloat(document.getElementById('tripToll').value) || 0
-    };
-    
-    const totalExpenses = Object.values(expenses).reduce((sum, exp) => sum + exp, 0);
-    
-    const trip = {
-        id: Date.now(),
-        truckId: parseInt(document.getElementById('tripTruck').value),
-        driverId: parseInt(document.getElementById('tripDriver').value),
-        item: document.getElementById('tripItem').value,
-        weight: document.getElementById('tripWeight').value,
-        from: document.getElementById('tripFrom').value,
-        to: document.getElementById('tripTo').value,
-        startDate: document.getElementById('tripStartDate').value,
-        endDate: document.getElementById('tripEndDate').value,
-        expenses: expenses,
-        revenue: revenue,
-        profit: revenue - totalExpenses,
-        remarks: document.getElementById('tripRemarks').value
-    };
-    
-    appData.trips.push(trip);
-    closeModal('tripModal');
-    renderTrips();
-    updateDashboardStats();
-    renderCharts(); // Update charts with new trip data
-    e.target.reset();
-}
-
-function deleteTrip(id) {
-    if (confirm('Are you sure you want to delete this trip?')) {
-        appData.trips = appData.trips.filter(trip => trip.id !== id);
-        renderTrips();
-        updateDashboardStats();
-        renderCharts(); // Update charts after deletion
-    }
-}
-
-// Drivers Section
-function renderDrivers() {
-    const container = document.getElementById('driversList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.drivers.forEach(driver => {
-        const driverTrips = appData.trips.filter(trip => trip.driverId === driver.id);
+        tbody.innerHTML = '';
+        trips.forEach(trip => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${trip.id}</td>
+                <td>${trip.truckId}</td>
+                <td>${trip.driverName}</td>
+                <td>${trip.startLocation} → ${trip.destination}</td>
+                <td>${trip.startDate} to ${trip.endDate}</td>
+                <td>${trip.distance} km</td>
+                <td>₹${trip.freightAmount.toLocaleString()}</td>
+                <td>₹${trip.expenses.toLocaleString()}</td>
+                <td>₹${trip.profit.toLocaleString()}</td>
+                <td><span class="status-badge status-${trip.status.toLowerCase().replace(' ', '-')}">${trip.status}</span></td>
+                <td>
+                    <button class="action-btn edit" onclick="window.app.editTrip(${trip.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="window.app.deleteTrip(${trip.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
         
-        const driverDiv = document.createElement('div');
-        driverDiv.className = 'driver-card';
-        driverDiv.innerHTML = `
-            <div class="driver-header">
-                <div class="driver-avatar">👤</div>
-                <div>
-                    <h3>${driver.name}</h3>
-                    <p class="field-value">${driver.phone}</p>
-                </div>
-            </div>
-            <div class="content-field">
-                <span class="field-label">License</span>
-                <span class="field-value">${driver.license}</span>
-            </div>
-            <div class="content-field">
-                <span class="field-label">Total Trips</span>
-                <span class="field-value">${driverTrips.length}</span>
-            </div>
-            <div class="content-field">
-                <span class="field-label">Total Salary</span>
-                <span class="field-value text-success">₹${(driver.totalSalary || 0).toLocaleString()}</span>
-            </div>
-            <div class="list-item-actions mt-16">
-                <button class="btn btn--sm" onclick="editDriver(${driver.id})">Edit</button>
-                <button class="btn btn--sm btn--outline" onclick="deleteDriver(${driver.id})">Delete</button>
-            </div>
-        `;
-        container.appendChild(driverDiv);
-    });
-}
-
-function handleDriverForm(e) {
-    e.preventDefault();
-    
-    const driver = {
-        id: Date.now(),
-        name: document.getElementById('driverName').value,
-        phone: document.getElementById('driverPhone').value,
-        license: document.getElementById('driverLicense').value,
-        totalSalary: 0,
-        remarks: document.getElementById('driverRemarks').value
-    };
-    
-    appData.drivers.push(driver);
-    closeModal('driverModal');
-    renderDrivers();
-    populateDropdowns();
-    e.target.reset();
-}
-
-function deleteDriver(id) {
-    if (confirm('Are you sure you want to delete this driver?')) {
-        appData.drivers = appData.drivers.filter(driver => driver.id !== id);
-        renderDrivers();
-        populateDropdowns();
+        console.log('Trips rendered:', trips.length);
     }
-}
 
-// Documents Section
-function renderDocuments() {
-    const container = document.getElementById('documentsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.documents.forEach(doc => {
-        const truck = appData.trucks.find(t => t.id === doc.truckId);
-        const expiryDate = new Date(doc.expiryDate);
-        const today = new Date();
-        const daysToExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-        const isExpiringSoon = daysToExpiry <= 30 && daysToExpiry > 0;
-        const isExpired = daysToExpiry <= 0;
-        
-        const docDiv = document.createElement('div');
-        docDiv.className = `list-item ${isExpired ? 'overdue' : isExpiringSoon ? 'expiring-soon' : ''}`;
-        docDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">${doc.name}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editDocument(${doc.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteDocument(${doc.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Type</span>
-                    <span class="field-value">${doc.type}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Truck</span>
-                    <span class="field-value">${truck ? truck.number : 'Unknown'}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Upload Date</span>
-                    <span class="field-value">${new Date(doc.uploadDate).toLocaleDateString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Expiry Date</span>
-                    <span class="field-value ${isExpired ? 'text-error' : isExpiringSoon ? 'text-warning' : ''}">
-                        ${doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : 'N/A'}
-                        ${isExpired ? ' (Expired)' : isExpiringSoon ? ` (${daysToExpiry} days)` : ''}
-                    </span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Remarks</span>
-                    <span class="field-value">${doc.remarks || 'N/A'}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(docDiv);
-    });
-}
+    filterTrips() {
+        const search = document.getElementById('trip-search');
+        const filterTruck = document.getElementById('trip-filter-truck');
+        const filterStatus = document.getElementById('trip-filter-status');
 
-function handleDocumentForm(e) {
-    e.preventDefault();
-    
-    const document = {
-        id: Date.now(),
-        name: document.getElementById('documentName').value,
-        type: document.getElementById('documentType').value,
-        truckId: parseInt(document.getElementById('documentTruck').value),
-        uploadDate: new Date().toISOString().split('T')[0],
-        expiryDate: document.getElementById('documentExpiry').value,
-        remarks: document.getElementById('documentRemarks').value,
-        status: 'Valid'
-    };
-    
-    appData.documents.push(document);
-    closeModal('documentModal');
-    renderDocuments();
-    e.target.reset();
-}
+        const searchValue = search ? search.value.toLowerCase() : '';
+        const filterTruckValue = filterTruck ? filterTruck.value : '';
+        const filterStatusValue = filterStatus ? filterStatus.value : '';
 
-function deleteDocument(id) {
-    if (confirm('Are you sure you want to delete this document?')) {
-        appData.documents = appData.documents.filter(doc => doc.id !== id);
-        renderDocuments();
+        let filtered = this.data.trips.filter(trip => {
+            const matchesSearch = !searchValue || 
+                trip.startLocation.toLowerCase().includes(searchValue) ||
+                trip.destination.toLowerCase().includes(searchValue) ||
+                trip.driverName.toLowerCase().includes(searchValue);
+            
+            const matchesTruck = !filterTruckValue || trip.truckId === filterTruckValue;
+            const matchesStatus = !filterStatusValue || trip.status === filterStatusValue;
+
+            return matchesSearch && matchesTruck && matchesStatus;
+        });
+
+        this.renderTrips(filtered);
+        console.log('Trips filtered:', filtered.length);
     }
-}
 
-// EMI Section
-function renderEMIRecords() {
-    const container = document.getElementById('emiList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.emiRecords.forEach(emi => {
-        const truck = appData.trucks.find(t => t.id === emi.truckId);
-        const progress = ((emi.paidAmount / emi.totalAmount) * 100).toFixed(1);
+    openTripModal(trip = null) {
+        console.log('Opening trip modal...', trip ? 'Edit' : 'Add');
+        const isEdit = trip !== null;
+        const title = isEdit ? 'Edit Trip' : 'Add New Trip';
         
-        const emiDiv = document.createElement('div');
-        emiDiv.className = 'list-item';
-        emiDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">EMI - ${truck ? truck.number : 'Unknown'}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editEMI(${emi.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteEMI(${emi.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Monthly Amount</span>
-                    <span class="field-value">₹${emi.monthlyAmount.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Total Amount</span>
-                    <span class="field-value">₹${emi.totalAmount.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Paid Amount</span>
-                    <span class="field-value text-success">₹${emi.paidAmount.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Remaining</span>
-                    <span class="field-value text-error">₹${emi.remainingAmount.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Progress</span>
-                    <div class="field-value">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                        <span>${progress}% Complete</span>
+        // Generate truck and driver options
+        const truckOptions = this.data.trucks.map(truck => 
+            `<option value="${truck.id}" ${trip && trip.truckId === truck.id ? 'selected' : ''}>${truck.id}</option>`
+        ).join('');
+        
+        const driverOptions = this.data.drivers.map(driver => 
+            `<option value="${driver.name}" ${trip && trip.driverName === driver.name ? 'selected' : ''}>${driver.name}</option>`
+        ).join('');
+
+        const content = `
+            <form id="trip-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Truck</label>
+                        <select name="truckId" class="form-control" required>
+                            <option value="">Select Truck</option>
+                            ${truckOptions}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Driver</label>
+                        <select name="driverName" class="form-control" required>
+                            <option value="">Select Driver</option>
+                            ${driverOptions}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Location</label>
+                        <input type="text" name="startLocation" class="form-control" value="${trip ? trip.startLocation : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Destination</label>
+                        <input type="text" name="destination" class="form-control" value="${trip ? trip.destination : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="startDate" class="form-control" value="${trip ? trip.startDate : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="endDate" class="form-control" value="${trip ? trip.endDate : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Distance (km)</label>
+                        <input type="number" name="distance" class="form-control" value="${trip ? trip.distance : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Freight Amount (₹)</label>
+                        <input type="number" name="freightAmount" class="form-control" value="${trip ? trip.freightAmount : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expenses (₹)</label>
+                        <input type="number" name="expenses" class="form-control" value="${trip ? trip.expenses : ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-control" required>
+                            <option value="Planned" ${trip && trip.status === 'Planned' ? 'selected' : ''}>Planned</option>
+                            <option value="In Progress" ${trip && trip.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Completed" ${trip && trip.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Cancelled" ${trip && trip.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
                     </div>
                 </div>
-                <div class="content-field">
-                    <span class="field-label">Last Payment</span>
-                    <span class="field-value">${new Date(emi.lastPaymentDate).toLocaleDateString()}</span>
+                <div class="form-actions">
+                    <button type="button" class="btn btn--outline" onclick="window.app.closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn--primary">${isEdit ? 'Update' : 'Add'} Trip</button>
                 </div>
-            </div>
+            </form>
         `;
-        container.appendChild(emiDiv);
-    });
-}
 
-function handleEMIForm(e) {
-    e.preventDefault();
-    
-    const monthlyAmount = parseFloat(document.getElementById('emiAmount').value);
-    const totalAmount = parseFloat(document.getElementById('emiTotal').value);
-    
-    const emi = {
-        id: Date.now(),
-        truckId: parseInt(document.getElementById('emiTruck').value),
-        monthlyAmount: monthlyAmount,
-        totalAmount: totalAmount,
-        paidAmount: monthlyAmount,
-        remainingAmount: totalAmount - monthlyAmount,
-        lastPaymentDate: document.getElementById('emiDate').value
-    };
-    
-    appData.emiRecords.push(emi);
-    closeModal('emiModal');
-    renderEMIRecords();
-    e.target.reset();
-}
+        this.openModal(title, content);
 
-function deleteEMI(id) {
-    if (confirm('Are you sure you want to delete this EMI record?')) {
-        appData.emiRecords = appData.emiRecords.filter(emi => emi.id !== id);
-        renderEMIRecords();
-    }
-}
-
-// ITR Section
-function renderITRRecords() {
-    const container = document.getElementById('itrList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.itrRecords.forEach(itr => {
-        const itrDiv = document.createElement('div');
-        itrDiv.className = 'list-item';
-        itrDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">ITR ${itr.year}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editITR(${itr.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteITR(${itr.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Total Income</span>
-                    <span class="field-value text-success">₹${itr.income.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Total Expenses</span>
-                    <span class="field-value text-error">₹${itr.expenses.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Tax Paid</span>
-                    <span class="field-value">₹${itr.tax.toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Net Profit</span>
-                    <span class="field-value text-success">₹${(itr.income - itr.expenses - itr.tax).toLocaleString()}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Remarks</span>
-                    <span class="field-value">${itr.remarks || 'N/A'}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(itrDiv);
-    });
-}
-
-function handleITRForm(e) {
-    e.preventDefault();
-    
-    const itr = {
-        id: Date.now(),
-        year: document.getElementById('itrYear').value,
-        income: parseFloat(document.getElementById('itrIncome').value),
-        expenses: parseFloat(document.getElementById('itrExpenses').value),
-        tax: parseFloat(document.getElementById('itrTax').value),
-        remarks: document.getElementById('itrRemarks').value
-    };
-    
-    appData.itrRecords.push(itr);
-    closeModal('itrModal');
-    renderITRRecords();
-    e.target.reset();
-}
-
-function deleteITR(id) {
-    if (confirm('Are you sure you want to delete this ITR record?')) {
-        appData.itrRecords = appData.itrRecords.filter(itr => itr.id !== id);
-        renderITRRecords();
-    }
-}
-
-// Alarms Section
-function renderAlarms() {
-    const container = document.getElementById('alarmList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.alarms.forEach(alarm => {
-        const alarmDateTime = new Date(`${alarm.date}T${alarm.time}`);
-        const now = new Date();
-        const isUpcoming = alarmDateTime > now && alarmDateTime - now <= 24 * 60 * 60 * 1000;
-        
-        const alarmDiv = document.createElement('div');
-        alarmDiv.className = `list-item ${isUpcoming ? 'expiring-soon' : ''}`;
-        alarmDiv.innerHTML = `
-            <div class="list-item-header">
-                <h3 class="list-item-title">${alarm.title}</h3>
-                <div class="list-item-actions">
-                    <button class="btn btn--sm btn-icon" onclick="editAlarm(${alarm.id})">✏️</button>
-                    <button class="btn btn--sm btn-icon" onclick="deleteAlarm(${alarm.id})">🗑️</button>
-                </div>
-            </div>
-            <div class="list-item-content">
-                <div class="content-field">
-                    <span class="field-label">Description</span>
-                    <span class="field-value">${alarm.description}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Date & Time</span>
-                    <span class="field-value">${new Date(alarm.date).toLocaleDateString()} ${alarm.time}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Priority</span>
-                    <span class="field-value status-badge status-${alarm.priority.toLowerCase()}">${alarm.priority}</span>
-                </div>
-                <div class="content-field">
-                    <span class="field-label">Status</span>
-                    <span class="field-value">${alarm.status}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(alarmDiv);
-    });
-}
-
-function handleAlarmForm(e) {
-    e.preventDefault();
-    
-    const alarm = {
-        id: Date.now(),
-        title: document.getElementById('alarmTitle').value,
-        description: document.getElementById('alarmDescription').value,
-        date: document.getElementById('alarmDate').value,
-        time: document.getElementById('alarmTime').value,
-        priority: document.getElementById('alarmPriority').value,
-        status: 'Pending'
-    };
-    
-    appData.alarms.push(alarm);
-    closeModal('alarmModal');
-    renderAlarms();
-    e.target.reset();
-}
-
-function deleteAlarm(id) {
-    if (confirm('Are you sure you want to delete this alarm?')) {
-        appData.alarms = appData.alarms.filter(alarm => alarm.id !== id);
-        renderAlarms();
-    }
-}
-
-// Notes Section
-function renderNotes() {
-    const container = document.getElementById('notesList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    appData.notes.forEach(note => {
-        const noteDiv = document.createElement('div');
-        noteDiv.className = 'note-card';
-        noteDiv.innerHTML = `
-            <div class="note-card-header">
-                <h3 class="note-title">${note.title}</h3>
-                <span class="note-category">${note.category}</span>
-            </div>
-            <div class="note-content">${note.content}</div>
-            <div class="note-date">Created: ${new Date(note.createdDate).toLocaleDateString()}</div>
-            <div class="list-item-actions mt-16">
-                <button class="btn btn--sm" onclick="editNote(${note.id})">Edit</button>
-                <button class="btn btn--sm btn--outline" onclick="deleteNote(${note.id})">Delete</button>
-            </div>
-        `;
-        container.appendChild(noteDiv);
-    });
-}
-
-function handleNoteForm(e) {
-    e.preventDefault();
-    
-    const now = new Date().toISOString().split('T')[0];
-    
-    const note = {
-        id: Date.now(),
-        title: document.getElementById('noteTitle').value,
-        content: document.getElementById('noteContent').value,
-        category: document.getElementById('noteCategory').value,
-        createdDate: now,
-        updatedDate: now
-    };
-    
-    appData.notes.push(note);
-    closeModal('noteModal');
-    renderNotes();
-    e.target.reset();
-}
-
-function deleteNote(id) {
-    if (confirm('Are you sure you want to delete this note?')) {
-        appData.notes = appData.notes.filter(note => note.id !== id);
-        renderNotes();
-    }
-}
-
-function searchNotes() {
-    const searchTerm = document.getElementById('notesSearch').value.toLowerCase();
-    const noteCards = document.querySelectorAll('.note-card');
-    
-    noteCards.forEach(card => {
-        const title = card.querySelector('.note-title').textContent.toLowerCase();
-        const content = card.querySelector('.note-content').textContent.toLowerCase();
-        
-        if (title.includes(searchTerm) || content.includes(searchTerm)) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Modal Functions
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('hidden');
-        populateDropdowns();
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('hidden');
-    }
-}
-
-function populateDropdowns() {
-    // Populate truck dropdowns
-    const tripTruckSelect = document.getElementById('tripTruck');
-    const documentTruckSelect = document.getElementById('documentTruck');
-    const emiTruckSelect = document.getElementById('emiTruck');
-    
-    [tripTruckSelect, documentTruckSelect, emiTruckSelect].forEach(select => {
-        if (select) {
-            select.innerHTML = '<option value="">Select Truck</option>';
-            appData.trucks.forEach(truck => {
-                select.innerHTML += `<option value="${truck.id}">${truck.number}</option>`;
+        const form = document.getElementById('trip-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveTrip(new FormData(e.target), trip);
             });
         }
-    });
-    
-    // Populate driver dropdown
-    const tripDriverSelect = document.getElementById('tripDriver');
-    if (tripDriverSelect) {
-        tripDriverSelect.innerHTML = '<option value="">Select Driver</option>';
-        appData.drivers.forEach(driver => {
-            tripDriverSelect.innerHTML += `<option value="${driver.id}">${driver.name}</option>`;
+    }
+
+    saveTrip(formData, existingTrip = null) {
+        console.log('Saving trip...');
+        const tripData = {
+            id: existingTrip ? existingTrip.id : Date.now(),
+            truckId: formData.get('truckId'),
+            driverName: formData.get('driverName'),
+            startLocation: formData.get('startLocation'),
+            destination: formData.get('destination'),
+            startDate: formData.get('startDate'),
+            endDate: formData.get('endDate'),
+            distance: parseInt(formData.get('distance')),
+            freightAmount: parseInt(formData.get('freightAmount')),
+            expenses: parseInt(formData.get('expenses')),
+            status: formData.get('status')
+        };
+
+        tripData.profit = tripData.freightAmount - tripData.expenses;
+
+        if (existingTrip) {
+            const index = this.data.trips.findIndex(t => t.id === existingTrip.id);
+            this.data.trips[index] = tripData;
+        } else {
+            this.data.trips.push(tripData);
+        }
+
+        this.saveData();
+        this.renderTrips();
+        this.updateDashboard();
+        this.closeModal();
+        this.showNotification('Trip saved successfully!', 'success');
+    }
+
+    editTrip(id) {
+        const trip = this.data.trips.find(t => t.id === id);
+        if (trip) {
+            this.openTripModal(trip);
+        }
+    }
+
+    deleteTrip(id) {
+        if (confirm('Are you sure you want to delete this trip?')) {
+            this.data.trips = this.data.trips.filter(t => t.id !== id);
+            this.saveData();
+            this.renderTrips();
+            this.updateDashboard();
+            this.showNotification('Trip deleted successfully!', 'success');
+        }
+    }
+
+    // Simplified implementations for other sections...
+    loadTrucks() {
+        console.log('Loading trucks...');
+        const tbody = document.querySelector('#trucks-table tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        this.data.trucks.forEach(truck => {
+            const row = document.createElement('tr');
+            const insuranceStatus = new Date(truck.insuranceExpiry) < new Date() ? 'expired' : 'active';
+            const serviceStatus = new Date(truck.nextServiceDate) < new Date() ? 'due' : 'scheduled';
+            
+            row.innerHTML = `
+                <td>${truck.id}</td>
+                <td>${truck.model}</td>
+                <td>${truck.purchaseDate}</td>
+                <td>
+                    ${truck.insuranceExpiry}
+                    ${insuranceStatus === 'expired' ? '<span class="status-badge status-error">Expired</span>' : ''}
+                </td>
+                <td>₹${truck.emiAmount.toLocaleString()}</td>
+                <td>
+                    ${truck.nextServiceDate}
+                    ${serviceStatus === 'due' ? '<span class="status-badge status-warning">Due</span>' : ''}
+                </td>
+                <td><span class="status-badge status-${truck.status.toLowerCase()}">${truck.status}</span></td>
+                <td>
+                    <button class="action-btn edit" onclick="window.app.editTruck('${truck.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="window.app.deleteTruck('${truck.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
         });
     }
+
+    openTruckModal() {
+        this.showNotification('Truck modal functionality will be implemented', 'info');
+    }
+
+    editTruck(id) {
+        this.showNotification(`Edit truck ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteTruck(id) {
+        this.showNotification(`Delete truck ${id} functionality will be implemented`, 'info');
+    }
+
+    // Similar simplified implementations for other sections
+    loadDrivers() {
+        console.log('Loading drivers...');
+        const tbody = document.querySelector('#drivers-table tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        this.data.drivers.forEach(driver => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${driver.name}</td>
+                <td>${driver.licenseNo}</td>
+                <td>${driver.phoneNo}</td>
+                <td>${driver.address}</td>
+                <td>${driver.joiningDate}</td>
+                <td>${driver.assignedTruck || 'Not Assigned'}</td>
+                <td><span class="status-badge status-${driver.status.toLowerCase()}">${driver.status}</span></td>
+                <td>
+                    <button class="action-btn edit" onclick="window.app.editDriver(${driver.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="window.app.deleteDriver(${driver.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    openDriverModal() {
+        this.showNotification('Driver modal functionality will be implemented', 'info');
+    }
+
+    editDriver(id) {
+        this.showNotification(`Edit driver ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteDriver(id) {
+        this.showNotification(`Delete driver ${id} functionality will be implemented`, 'info');
+    }
+
+    loadExpenses() {
+        console.log('Loading expenses...');
+        const filterCategory = document.getElementById('expense-filter-category');
+        
+        // Update category filter options
+        if (filterCategory) {
+            filterCategory.innerHTML = '<option value="">All Categories</option>';
+            this.expenseCategories.forEach(category => {
+                filterCategory.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+        }
+
+        this.renderExpenses();
+    }
+
+    renderExpenses(filteredExpenses = null) {
+        const tbody = document.querySelector('#expenses-table tbody');
+        if (!tbody) return;
+        
+        const expenses = filteredExpenses || this.data.expenses;
+        
+        tbody.innerHTML = '';
+        expenses.forEach(expense => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${expense.date}</td>
+                <td>${expense.category}</td>
+                <td>₹${expense.amount.toLocaleString()}</td>
+                <td>${expense.description}</td>
+                <td>${expense.truckId || 'General'}</td>
+                <td>
+                    <button class="action-btn edit" onclick="window.app.editExpense(${expense.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="window.app.deleteExpense(${expense.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    filterExpenses() {
+        const search = document.getElementById('expense-search');
+        const filterCategory = document.getElementById('expense-filter-category');
+        const filterFrom = document.getElementById('expense-filter-from');
+        const filterTo = document.getElementById('expense-filter-to');
+
+        const searchValue = search ? search.value.toLowerCase() : '';
+        const filterCategoryValue = filterCategory ? filterCategory.value : '';
+        const filterFromValue = filterFrom ? filterFrom.value : '';
+        const filterToValue = filterTo ? filterTo.value : '';
+
+        let filtered = this.data.expenses.filter(expense => {
+            const matchesSearch = !searchValue || 
+                expense.description.toLowerCase().includes(searchValue) ||
+                expense.category.toLowerCase().includes(searchValue);
+            
+            const matchesCategory = !filterCategoryValue || expense.category === filterCategoryValue;
+            
+            const matchesDateRange = (!filterFromValue || expense.date >= filterFromValue) &&
+                                   (!filterToValue || expense.date <= filterToValue);
+
+            return matchesSearch && matchesCategory && matchesDateRange;
+        });
+
+        this.renderExpenses(filtered);
+    }
+
+    openExpenseModal() {
+        this.showNotification('Expense modal functionality will be implemented', 'info');
+    }
+
+    editExpense(id) {
+        this.showNotification(`Edit expense ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteExpense(id) {
+        this.showNotification(`Delete expense ${id} functionality will be implemented`, 'info');
+    }
+
+    // Placeholder methods for other sections
+    loadServices() {
+        console.log('Loading services...');
+        const tbody = document.querySelector('#services-table tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No service records yet</td></tr>';
+    }
+
+    openServiceModal() {
+        this.showNotification('Service modal functionality will be implemented', 'info');
+    }
+
+    editService(id) {
+        this.showNotification(`Edit service ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteService(id) {
+        this.showNotification(`Delete service ${id} functionality will be implemented`, 'info');
+    }
+
+    loadEMIs() {
+        console.log('Loading EMIs...');
+        const tbody = document.querySelector('#emis-table tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No EMI records yet</td></tr>';
+    }
+
+    openEMIModal() {
+        this.showNotification('EMI modal functionality will be implemented', 'info');
+    }
+
+    editEMI(id) {
+        this.showNotification(`Edit EMI ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteEMI(id) {
+        this.showNotification(`Delete EMI ${id} functionality will be implemented`, 'info');
+    }
+
+    loadDocuments() {
+        console.log('Loading documents...');
+        const grid = document.getElementById('documents-grid');
+        if (grid) {
+            grid.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">No documents uploaded yet.</p>';
+        }
+    }
+
+    openDocumentModal() {
+        this.showNotification('Document modal functionality will be implemented', 'info');
+    }
+
+    viewDocument(id) {
+        this.showNotification(`View document ${id} functionality will be implemented`, 'info');
+    }
+
+    editDocumentDescription(id) {
+        this.showNotification(`Edit document ${id} functionality will be implemented`, 'info');
+    }
+
+    deleteDocument(id) {
+        this.showNotification(`Delete document ${id} functionality will be implemented`, 'info');
+    }
+
+    filterDocuments() {
+        console.log('Filter documents called');
+    }
+
+    // Export/Import placeholder methods
+    exportData() {
+        this.showNotification('Export functionality will be implemented', 'info');
+    }
+
+    importData() {
+        this.showNotification('Import functionality will be implemented', 'info');
+    }
+
+    clearAllData() {
+        if (confirm('This will clear all sample data. Continue?')) {
+            this.data = {
+                trips: [],
+                trucks: [],
+                drivers: [],
+                expenses: [],
+                services: [],
+                emis: [],
+                documents: []
+            };
+            this.saveData();
+            this.updateDashboard();
+            this.switchSection(this.currentSection);
+            this.showNotification('All data cleared!', 'warning');
+        }
+    }
+
+    // Modal Management
+    openModal(title, content) {
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modal = document.getElementById('modal');
+        
+        if (modalTitle) modalTitle.textContent = title;
+        if (modalBody) modalBody.innerHTML = content;
+        if (modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+    }
+
+    closeModal() {
+        const modal = document.getElementById('modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+    }
+
+    // Notifications
+    showNotification(message, type = 'info') {
+        console.log('Notification:', message, type);
+        
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        const container = document.getElementById('notifications');
+        if (container) {
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (container.contains(notification)) {
+                        container.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    }
 }
 
-// Excel Export Functions
-function exportToExcel(type) {
-    if (!window.XLSX) {
-        alert('Excel export functionality is not available. Please check your internet connection.');
-        return;
-    }
-    
-    let data = [];
-    let filename = '';
-    
-    switch(type) {
-        case 'trips':
-            data = appData.trips.map(trip => {
-                const truck = appData.trucks.find(t => t.id === trip.truckId);
-                const driver = appData.drivers.find(d => d.id === trip.driverId);
-                const totalExpenses = Object.values(trip.expenses || {}).reduce((sum, exp) => sum + exp, 0);
-                
-                return {
-                    'Trip ID': trip.id,
-                    'Truck': truck ? truck.number : 'Unknown',
-                    'Driver': driver ? driver.name : 'Unknown',
-                    'Item': trip.item,
-                    'Weight': trip.weight,
-                    'From': trip.from,
-                    'To': trip.to,
-                    'Start Date': trip.startDate,
-                    'End Date': trip.endDate,
-                    'Revenue': trip.revenue,
-                    'Total Expenses': totalExpenses,
-                    'Profit': trip.revenue - totalExpenses,
-                    'Remarks': trip.remarks
-                };
-            });
-            filename = 'trips_export.xlsx';
-            break;
-            
-        case 'drivers':
-            data = appData.drivers.map(driver => {
-                const driverTrips = appData.trips.filter(trip => trip.driverId === driver.id);
-                return {
-                    'Driver ID': driver.id,
-                    'Name': driver.name,
-                    'Phone': driver.phone,
-                    'License': driver.license,
-                    'Total Trips': driverTrips.length,
-                    'Total Salary': driver.totalSalary,
-                    'Remarks': driver.remarks
-                };
-            });
-            filename = 'drivers_export.xlsx';
-            break;
-            
-        case 'emi':
-            data = appData.emiRecords.map(emi => {
-                const truck = appData.trucks.find(t => t.id === emi.truckId);
-                return {
-                    'EMI ID': emi.id,
-                    'Truck': truck ? truck.number : 'Unknown',
-                    'Monthly Amount': emi.monthlyAmount,
-                    'Total Amount': emi.totalAmount,
-                    'Paid Amount': emi.paidAmount,
-                    'Remaining Amount': emi.remainingAmount,
-                    'Last Payment Date': emi.lastPaymentDate
-                };
-            });
-            filename = 'emi_export.xlsx';
-            break;
-    }
-    
-    if (data.length === 0) {
-        alert('No data to export');
-        return;
-    }
-    
-    try {
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-        XLSX.writeFile(wb, filename);
-    } catch (error) {
-        console.error('Export error:', error);
-        alert('Failed to export data. Please try again.');
-    }
-}
-
-// Edit Functions (Stubs for future implementation)
-function editAlert(id) { console.log('Edit alert:', id); }
-function editTruck(id) { console.log('Edit truck:', id); }
-function editTrip(id) { console.log('Edit trip:', id); }
-function editDriver(id) { console.log('Edit driver:', id); }
-function editDocument(id) { console.log('Edit document:', id); }
-function editEMI(id) { console.log('Edit EMI:', id); }
-function editITR(id) { console.log('Edit ITR:', id); }
-function editAlarm(id) { console.log('Edit alarm:', id); }
-function editNote(id) { console.log('Edit note:', id); }
+// Initialize the application when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing app...');
+    window.app = new DTSApp();
+    console.log('App initialized and made globally available');
+});
