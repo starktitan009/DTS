@@ -3,391 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTS - Truck Management System</title>
+    <title>DTS - Truck Transport Business</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Intro Video Screen -->
-    <div id="intro-screen" class="intro-screen">
-        <div class="video-container">
-            <video id="intro-video" muted autoplay>
-                <source src="intro.mp4" type="video/mp4">
-                <div class="video-fallback">
-                    <div class="fallback-content">
-                        <h1>DTS</h1>
-                        <p>Truck Management System</p>
-                        <div class="loading-spinner"></div>
-                    </div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>DTS</h1>
+                <p>Truck Transport Business</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" required>
                 </div>
-            </video>
-            <button id="skip-intro" class="btn btn--primary skip-btn">
-                <i class="fas fa-forward"></i> Skip Intro
-            </button>
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" required>
+                    <div class="login-hint">sai</div>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full-width">Login</button>
+                <div id="loginError" class="login-error hidden"></div>
+            </form>
         </div>
     </div>
 
     <!-- Main Application -->
-    <div id="main-app" class="main-app hidden">
+    <div id="mainApp" class="main-app hidden">
         <!-- Sidebar -->
-        <nav class="sidebar" id="sidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <i class="fas fa-truck"></i>
-                    <span>DTS</span>
+                    <h2>DTS</h2>
                 </div>
-                <button class="sidebar-toggle" id="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li><a href="#dashboard" class="nav-link active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>Dashboard
+                    </a></li>
+                    <li><a href="#alerts" class="nav-link" data-page="alerts">
+                        <span class="nav-icon">🔔</span>Alerts & Reminders
+                        <span class="nav-badge" id="alertsBadge">0</span>
+                    </a></li>
+                    <li><a href="#trucks" class="nav-link" data-page="trucks">
+                        <span class="nav-icon">🚛</span>Trucks
+                    </a></li>
+                    <li><a href="#trips" class="nav-link" data-page="trips">
+                        <span class="nav-icon">🛣️</span>Trips
+                    </a></li>
+                    <li><a href="#drivers" class="nav-link" data-page="drivers">
+                        <span class="nav-icon">👨‍💼</span>Drivers
+                    </a></li>
+                    <li><a href="#documents" class="nav-link" data-page="documents">
+                        <span class="nav-icon">📄</span>Documents
+                        <span class="nav-badge warning" id="docsBadge">0</span>
+                    </a></li>
+                    <li><a href="#emi" class="nav-link" data-page="emi">
+                        <span class="nav-icon">💰</span>Truck EMI
+                    </a></li>
+                    <li><a href="#itr" class="nav-link" data-page="itr">
+                        <span class="nav-icon">📊</span>ITR
+                    </a></li>
+                    <li><a href="#alarm" class="nav-link" data-page="alarm">
+                        <span class="nav-icon">⏰</span>Alarm
+                        <span class="nav-badge" id="alarmBadge">0</span>
+                    </a></li>
+                    <li><a href="#notes" class="nav-link" data-page="notes">
+                        <span class="nav-icon">📝</span>Notes
+                    </a></li>
+                    <li><a href="#about" class="nav-link" data-page="about">
+                        <span class="nav-icon">ℹ️</span>About Us
+                    </a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn--primary btn--full-width" id="saveChangesBtn">
+                    Save Changes
                 </button>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" data-section="dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="#" data-section="trips"><i class="fas fa-route"></i> Trip Management</a></li>
-                <li><a href="#" data-section="trucks"><i class="fas fa-truck"></i> Truck Management</a></li>
-                <li><a href="#" data-section="drivers"><i class="fas fa-users"></i> Driver Management</a></li>
-                <li><a href="#" data-section="expenses"><i class="fas fa-receipt"></i> Expenses</a></li>
-                <li><a href="#" data-section="services"><i class="fas fa-wrench"></i> Servicing</a></li>
-                <li><a href="#" data-section="emis"><i class="fas fa-credit-card"></i> EMI Tracking</a></li>
-                <li><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> Documents</a></li>
-                <li><a href="#" data-section="export"><i class="fas fa-download"></i> Export/Import</a></li>
-            </ul>
-        </nav>
+        </aside>
 
         <!-- Main Content -->
-        <div class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <h1 id="page-title">Dashboard</h1>
-                </div>
-                <div class="header-right">
-                    <div class="user-profile">
-                        <i class="fas fa-user-circle"></i>
-                        <span>Admin</span>
-                    </div>
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="user-menu">
+                    <button class="btn btn--outline btn--sm" id="logoutBtn">Logout</button>
                 </div>
             </header>
 
-            <!-- Content Sections -->
-            <main class="content">
-                <!-- Dashboard Section -->
-                <section id="dashboard-section" class="section active">
+            <!-- Page Content -->
+            <div class="content-area">
+                <!-- Dashboard Page -->
+                <div id="dashboardPage" class="page active">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-route"></i></div>
-                            <div class="stat-content">
-                                <h3 id="total-trips">0</h3>
-                                <p>Total Trips</p>
-                            </div>
+                            <h3>Total Profit</h3>
+                            <div class="stat-value" id="totalProfit">₹0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-truck"></i></div>
-                            <div class="stat-content">
-                                <h3 id="active-trucks">0</h3>
-                                <p>Active Trucks</p>
-                            </div>
+                            <h3>Total Trips</h3>
+                            <div class="stat-value" id="totalTrips">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-users"></i></div>
-                            <div class="stat-content">
-                                <h3 id="total-drivers">0</h3>
-                                <p>Drivers</p>
-                            </div>
+                            <h3>Active Trucks</h3>
+                            <div class="stat-value" id="activeTrucks">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
-                            <div class="stat-content">
-                                <h3 id="monthly-expenses">₹0</h3>
-                                <p>Monthly Expenses</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
-                            <div class="stat-content">
-                                <h3 id="upcoming-emis">0</h3>
-                                <p>Upcoming EMIs</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-wrench"></i></div>
-                            <div class="stat-content">
-                                <h3 id="pending-services">0</h3>
-                                <p>Pending Services</p>
-                            </div>
+                            <h3>Completed Trips</h3>
+                            <div class="stat-value" id="completedTrips">0</div>
                         </div>
                     </div>
-
                     <div class="charts-grid">
-                        <div class="chart-container" style="position: relative; height: 400px;">
-                            <h3>Monthly Expenses Trend</h3>
-                            <canvas id="expenses-chart"></canvas>
-                        </div>
-                        <div class="chart-container" style="position: relative; height: 400px;">
-                            <h3>Trips per Truck</h3>
-                            <canvas id="trips-chart"></canvas>
-                        </div>
-                        <div class="chart-container" style="position: relative; height: 400px;">
-                            <h3>Expense Breakdown</h3>
-                            <canvas id="expense-breakdown-chart"></canvas>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Trip Management Section -->
-                <section id="trips-section" class="section">
-                    <div class="section-header">
-                        <h2>Trip Management</h2>
-                        <button class="btn btn--primary" id="add-trip-btn">
-                            <i class="fas fa-plus"></i> Add Trip
-                        </button>
-                    </div>
-                    <div class="filters">
-                        <input type="text" id="trip-search" class="form-control" placeholder="Search trips...">
-                        <select id="trip-filter-truck" class="form-control">
-                            <option value="">All Trucks</option>
-                        </select>
-                        <select id="trip-filter-status" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="Planned">Planned</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="table-container">
-                        <table id="trips-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Trip ID</th>
-                                    <th>Truck</th>
-                                    <th>Driver</th>
-                                    <th>Route</th>
-                                    <th>Date</th>
-                                    <th>Distance</th>
-                                    <th>Freight</th>
-                                    <th>Expenses</th>
-                                    <th>Profit</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Truck Management Section -->
-                <section id="trucks-section" class="section">
-                    <div class="section-header">
-                        <h2>Truck Management</h2>
-                        <button class="btn btn--primary" id="add-truck-btn">
-                            <i class="fas fa-plus"></i> Add Truck
-                        </button>
-                    </div>
-                    <div class="table-container">
-                        <table id="trucks-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Truck Number</th>
-                                    <th>Model</th>
-                                    <th>Purchase Date</th>
-                                    <th>Insurance Expiry</th>
-                                    <th>EMI Amount</th>
-                                    <th>Next Service</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Driver Management Section -->
-                <section id="drivers-section" class="section">
-                    <div class="section-header">
-                        <h2>Driver Management</h2>
-                        <button class="btn btn--primary" id="add-driver-btn">
-                            <i class="fas fa-plus"></i> Add Driver
-                        </button>
-                    </div>
-                    <div class="table-container">
-                        <table id="drivers-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>License No</th>
-                                    <th>Phone</th>
-                                    <th>Address</th>
-                                    <th>Joining Date</th>
-                                    <th>Assigned Truck</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Expenses Section -->
-                <section id="expenses-section" class="section">
-                    <div class="section-header">
-                        <h2>Expenses Tracking</h2>
-                        <button class="btn btn--primary" id="add-expense-btn">
-                            <i class="fas fa-plus"></i> Add Expense
-                        </button>
-                    </div>
-                    <div class="filters">
-                        <input type="text" id="expense-search" class="form-control" placeholder="Search expenses...">
-                        <select id="expense-filter-category" class="form-control">
-                            <option value="">All Categories</option>
-                        </select>
-                        <input type="date" id="expense-filter-from" class="form-control">
-                        <input type="date" id="expense-filter-to" class="form-control">
-                    </div>
-                    <div class="table-container">
-                        <table id="expenses-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Category</th>
-                                    <th>Amount</th>
-                                    <th>Description</th>
-                                    <th>Truck</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Services Section -->
-                <section id="services-section" class="section">
-                    <div class="section-header">
-                        <h2>Servicing & Maintenance</h2>
-                        <button class="btn btn--primary" id="add-service-btn">
-                            <i class="fas fa-plus"></i> Add Service</                        </button>
-                    </div>
-                    <div class="table-container">
-                        <table id="services-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Truck</th>
-                                    <th>Service Date</th>
-                                    <th>Service Type</th>
-                                    <th>Cost</th>
-                                    <th>Next Service</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- EMI Section -->
-                <section id="emis-section" class="section">
-                    <div class="section-header">
-                        <h2>EMI Tracking</h2>
-                        <button class="btn btn--primary" id="add-emi-btn">
-                            <i class="fas fa-plus"></i> Add EMI
-                        </button>
-                    </div>
-                    <div class="table-container">
-                        <table id="emis-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Truck</th>
-                                    <th>Bank Name</th>
-                                    <th>EMI Amount</th>
-                                    <th>EMI Date</th>
-                                    <th>Total EMIs</th>
-                                    <th>Remaining</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Documents Section -->
-                <section id="documents-section" class="section">
-                    <div class="section-header">
-                        <h2>Documents Management</h2>
-                        <button class="btn btn--primary" id="add-document-btn">
-                            <i class="fas fa-plus"></i> Add Document
-                        </button>
-                    </div>
-                    <div class="filters">
-                        <input type="text" id="document-search" class="form-control" placeholder="Search documents...">
-                        <select id="document-filter-category" class="form-control">
-                            <option value="">All Categories</option>
-                        </select>
-                    </div>
-                    <div id="documents-grid" class="documents-grid"></div>
-                </section>
-
-                <!-- Export/Import Section -->
-                <section id="export-section" class="section">
-                    <div class="section-header">
-                        <h2>Data Export/Import</h2>
-                    </div>
-                    <div class="export-import-container">
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Export Data</h3>
-                                <p>Download all your data as a JSON file for backup purposes.</p>
-                                <button class="btn btn--primary" id="export-data-btn">
-                                    <i class="fas fa-download"></i> Export All Data
-                                </button>
+                        <div class="chart-container">
+                            <h3>Expense vs Profit</h3>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="expenseProfitChart"></canvas>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Import Data</h3>
-                                <p>Import previously exported data to restore your information.</p>
-                                <input type="file" id="import-file" accept=".json" class="form-control">
-                                <button class="btn btn--primary" id="import-data-btn">
-                                    <i class="fas fa-upload"></i> Import Data
-                                </button>
+                        <div class="chart-container">
+                            <h3>Trips by Truck</h3>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="tripsByTruckChart"></canvas>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Clear All Data</h3>
-                                <p class="status--warning">Warning: This will permanently delete all data.</p>
-                                <button class="btn btn--outline" id="clear-data-btn" style="color: var(--color-error); border-color: var(--color-error);">
-                                    <i class="fas fa-trash"></i> Clear All Data
-                                </button>
+                        <div class="chart-container">
+                            <h3>Monthly Earnings</h3>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="monthlyEarningsChart"></canvas>
                             </div>
                         </div>
                     </div>
-                </section>
-            </main>
-        </div>
+                    <div id="dashboardAlerts" class="dashboard-alerts"></div>
+                </div>
+
+                <!-- Alerts Page -->
+                <div id="alertsPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addAlertBtn">Add Alert</button>
+                    </div>
+                    <div id="alertsList" class="items-grid"></div>
+                </div>
+
+                <!-- Trucks Page -->
+                <div id="trucksPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addTruckBtn">Add Truck</button>
+                        <div class="search-filter">
+                            <input type="text" id="truckSearch" class="form-control" placeholder="Search trucks...">
+                            <select id="truckFilter" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="ongoing">On-going</option>
+                                <option value="idle">Idle</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="trucksList" class="items-grid"></div>
+                </div>
+
+                <!-- Trips Page -->
+                <div id="tripsPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addTripBtn">Add Trip</button>
+                        <button class="btn btn--secondary" id="exportTripsBtn">Export to Excel</button>
+                    </div>
+                    <div id="tripsList" class="items-grid"></div>
+                </div>
+
+                <!-- Drivers Page -->
+                <div id="driversPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addDriverBtn">Add Driver</button>
+                    </div>
+                    <div id="driversList" class="items-grid"></div>
+                </div>
+
+                <!-- Documents Page -->
+                <div id="documentsPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addDocumentBtn">Upload Document</button>
+                    </div>
+                    <div id="documentsList" class="items-grid"></div>
+                </div>
+
+                <!-- EMI Page -->
+                <div id="emiPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addEmiBtn">Add EMI Payment</button>
+                        <button class="btn btn--secondary" id="exportEmiBtn">Export to Excel</button>
+                    </div>
+                    <div id="emiList" class="items-grid"></div>
+                </div>
+
+                <!-- ITR Page -->
+                <div id="itrPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addItrBtn">Add ITR Data</button>
+                    </div>
+                    <div id="itrList" class="items-grid"></div>
+                </div>
+
+                <!-- Alarm Page -->
+                <div id="alarmPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addAlarmBtn">Add Alarm</button>
+                    </div>
+                    <div id="alarmsList" class="items-grid"></div>
+                </div>
+
+                <!-- Notes Page -->
+                <div id="notesPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addNoteBtn">Add Note</button>
+                        <input type="text" id="notesSearch" class="form-control" placeholder="Search notes..." style="width: 300px;">
+                    </div>
+                    <div id="notesList" class="items-grid"></div>
+                </div>
+
+                <!-- About Page -->
+                <div id="aboutPage" class="page">
+                    <div class="page-header">
+                        <button class="btn btn--primary" id="addOwnerBtn">Add Owner Profile</button>
+                    </div>
+                    <div id="ownersList" class="items-grid"></div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <!-- Modal Container -->
     <div id="modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modal-title">Modal Title</h3>
-                <button class="modal-close">&times;</button>
+                <h2 id="modalTitle"></h2>
+                <button class="modal-close" id="modalClose">&times;</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Dynamic content will be inserted here -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-    <!-- Notification Container -->
-    <div id="notifications" class="notifications"></div>
+    <!-- Success/Error Messages -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <span id="toastMessage"></span>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
