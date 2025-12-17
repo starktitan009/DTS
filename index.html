@@ -1,621 +1,657 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTS - Truck Transport Business</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Mental Health Assessment</title>
+    <style>
+        :root {
+            --color-primary: #2196F3;
+            --color-primary-dark: #1976D2;
+            --color-success: #4CAF50;
+            --color-warning: #FF9800;
+            --color-danger: #F44336;
+            --color-light: #F5F5F5;
+            --color-dark: #333;
+            --color-text: #555;
+            --color-border: #DDD;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--color-text);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--color-primary);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-dark);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: var(--color-light);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text);
+            margin-top: 8px;
+        }
+
+        /* Questions */
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question-title {
+            font-weight: 600;
+            color: var(--color-dark);
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .option label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-light);
+            color: var(--color-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #E8E8E8;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Results */
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--color-primary);
+        }
+
+        .result-card.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left-color: var(--color-success);
+        }
+
+        .result-card.warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left-color: var(--color-warning);
+        }
+
+        .result-card.danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-left-color: var(--color-danger);
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--color-dark);
+        }
+
+        .result-score {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 15px;
+        }
+
+        .result-description {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .recommendations {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .recommendations h3 {
+            color: var(--color-dark);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--color-light);
+            border-left: 3px solid var(--color-primary);
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .recommendations li:before {
+            content: "✓ ";
+            color: var(--color-success);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                border-radius: 8px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+    </style>
 </head>
 <body>
-    <!-- Intro Video Screen -->
-    <div id="videoScreen" class="video-screen">
-        <div class="video-container">
-            <iframe id="introVideo" 
-                    src="https://drive.google.com/file/d/1lOXAMUJCDsOQzauCU5UF2u7_w6dJpbzX/preview" 
-                    frameborder="0" 
-                    allowfullscreen
-                    allow="autoplay">
-            </iframe>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Mental Health Check</h1>
+            <p>Understand your mental wellness with this assessment</p>
         </div>
-        <div class="loading-fallback hidden">
-            <div class="loader"></div>
-            <p>Loading DTS Transport System...</p>
-        </div>
-        <button id="skipVideo" class="btn btn--secondary skip-btn">Skip Video</button>
-    </div>
 
-    <!-- Login Screen -->
-    <div id="loginScreen" class="login-screen hidden">
-        <div class="login-container">
-            <div class="login-header">
-                <h1>🚛 DTS</h1>
-                <h2>Truck Transport Business</h2>
-            </div>
-            <form id="loginForm" class="login-form">
+        <!-- Welcome Section -->
+        <div id="welcomeSection" class="fade-in">
+            <form id="infoForm">
                 <div class="form-group">
-                    <input type="text" id="username" class="form-control" placeholder="Username" required>
+                    <label for="name">Your Name *</label>
+                    <input type="text" id="name" placeholder="Enter your name" required>
                 </div>
+
                 <div class="form-group">
-                    <input type="password" id="password" class="form-control" placeholder="Password" required>
+                    <label for="age">Your Age *</label>
+                    <input type="number" id="age" min="13" max="120" placeholder="Enter your age" required>
                 </div>
-                <div class="hint">sai</div>
-                <button type="submit" class="btn btn--primary btn--full-width">Login</button>
-                <div id="loginError" class="error-message hidden">Invalid credentials. Please try again.</div>
+
+                <button type="submit" class="btn-primary">Start Assessment</button>
             </form>
         </div>
-    </div>
 
-    <!-- Main Application -->
-    <div id="mainApp" class="main-app hidden">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <span class="logo-icon">🚛</span>
-                    <span class="logo-text">DTS TRUCKING CARGO</span>
+        <!-- Quiz Section -->
+        <div id="quizSection" class="hidden fade-in">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <button id="sidebarToggle" class="sidebar-toggle">☰</button>
+                <div class="progress-text" id="progressText">Question 1 of 10</div>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-section="dashboard">
-                    <span>📊</span> Dashboard
-                </a>
-                <a href="#" class="nav-item" data-section="alerts">
-                    <span>⚠️</span> Alerts & Reminders
-                    <span class="badge" id="alertsBadge">0</span>
-                </a>
-                <a href="#" class="nav-item" data-section="trucks">
-                    <span>🚛</span> Trucks
-                </a>
-                <a href="#" class="nav-item" data-section="trips">
-                    <span>🛣️</span> Trips
-                </a>
-                <a href="#" class="nav-item" data-section="drivers">
-                    <span>👤</span> Drivers
-                </a>
-                <a href="#" class="nav-item" data-section="documents">
-                    <span>📄</span> Documents
-                </a>
-                <a href="#" class="nav-item" data-section="emi">
-                    <span>💰</span> Truck EMI
-                </a>
-                <a href="#" class="nav-item" data-section="itr">
-                    <span>📋</span> ITR
-                </a>
-                <a href="#" class="nav-item" data-section="alarm">
-                    <span>⏰</span> Alarm
-                </a>
-                <a href="#" class="nav-item" data-section="notes">
-                    <span>📝</span> Notes
-                </a>
-                <a href="#" class="nav-item" data-section="about">
-                    <span>ℹ️</span> About Us
-                </a>
-            </nav>
-            <button id="saveChanges" class="btn btn--primary save-btn">💾 Save Changes</button>
+
+            <div id="questionContainer"></div>
+
+            <div class="button-group">
+                <button type="button" class="btn-secondary" id="prevBtn" onclick="previousQuestion()">← Previous</button>
+                <button type="button" class="btn-primary" id="nextBtn" onclick="nextQuestion()">Next →</button>
+            </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Top Bar -->
-            <header class="top-bar">
-                <h1 id="pageTitle">Dashboard</h1>
-                <div class="user-actions">
-                    <span class="user-name">Welcome, Admin</span>
-                    <button id="logoutBtn" class="btn btn--outline btn--sm">Logout</button>
-                </div>
-            </header>
-
-            <!-- Dashboard Section -->
-            <div id="dashboardSection" class="section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <h3 id="totalProfit">₹0</h3>
-                            <p>Total Profit</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🛣️</div>
-                        <div class="stat-content">
-                            <h3 id="totalTrips">0</h3>
-                            <p>Total Trips</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🚛</div>
-                        <div class="stat-content">
-                            <h3 id="activetrucks">0</h3>
-                            <p>Active Trucks</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-content">
-                            <h3 id="completedTrips">0</h3>
-                            <p>Completed Trips</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="charts-grid">
-                    <div class="chart-container" style="position: relative; height: 300px;">
-                        <canvas id="profitChart"></canvas>
-                    </div>
-                    <div class="chart-container" style="position: relative; height: 300px;">
-                        <canvas id="tripsChart"></canvas>
-                    </div>
-                </div>
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden fade-in">
+            <div class="result-card" id="resultCard">
+                <div class="result-title">Your Assessment Results</div>
+                <div class="result-score" id="resultScore">Score: 0%</div>
+                <div class="result-description" id="resultDescription"></div>
             </div>
 
-            <!-- Alerts Section -->
-            <div id="alertsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Alerts & Reminders</h2>
-                    <button class="btn btn--primary" onclick="openModal('alertModal')">Add Alert</button>
-                </div>
-                <div id="alertsList" class="alerts-list"></div>
-            </div>
+            <div class="recommendations" id="recommendations"></div>
 
-            <!-- Trucks Section -->
-            <div id="trucksSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Trucks</h2>
-                    <button class="btn btn--primary" onclick="openModal('truckModal')">Add Truck</button>
-                </div>
-                <div id="trucksList" class="trucks-grid"></div>
-            </div>
-
-            <!-- Trips Section -->
-            <div id="tripsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Trips</h2>
-                    <button class="btn btn--primary" onclick="openModal('tripModal')">Add Trip</button>
-                    <button class="btn btn--secondary" onclick="exportToExcel('trips')">Export Excel</button>
-                </div>
-                <div id="tripsList" class="trips-list"></div>
-            </div>
-
-            <!-- Drivers Section -->
-            <div id="driversSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Drivers</h2>
-                    <button class="btn btn--primary" onclick="openModal('driverModal')">Add Driver</button>
-                </div>
-                <div id="driversList" class="drivers-grid"></div>
-            </div>
-
-            <!-- Documents Section -->
-            <div id="documentsSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Documents</h2>
-                    <button class="btn btn--primary" onclick="openModal('documentModal')">Upload Document</button>
-                </div>
-                <div id="documentsList" class="documents-list"></div>
-            </div>
-
-            <!-- EMI Section -->
-            <div id="emiSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Truck EMI</h2>
-                    <button class="btn btn--primary" onclick="openModal('emiModal')">Add EMI Payment</button>
-                </div>
-                <div id="emiList" class="emi-list"></div>
-            </div>
-
-            <!-- ITR Section -->
-            <div id="itrSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Income Tax Returns</h2>
-                    <button class="btn btn--primary" onclick="openModal('itrModal')">Add ITR Record</button>
-                </div>
-                <div id="itrList" class="itr-list"></div>
-            </div>
-
-            <!-- Alarm Section -->
-            <div id="alarmSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Alarms & Tasks</h2>
-                    <button class="btn btn--primary" onclick="openModal('alarmModal')">Add Alarm</button>
-                </div>
-                <div id="alarmList" class="alarm-list"></div>
-            </div>
-
-            <!-- Notes Section -->
-            <div id="notesSection" class="section hidden">
-                <div class="section-header">
-                    <h2>Notes</h2>
-                    <button class="btn btn--primary" onclick="openModal('noteModal')">Add Note</button>
-                    <input type="text" id="notesSearch" class="form-control" placeholder="Search notes..." style="width: 200px; margin-left: auto;">
-                </div>
-                <div id="notesList" class="notes-grid"></div>
-            </div>
-
-            <!-- About Section -->
-            <div id="aboutSection" class="section hidden">
-                <div class="section-header">
-                    <h2>About Us</h2>
-                </div>
-                <div class="about-content">
-                    <div class="card">
-                        <div class="card__body">
-                            <h3>DTS Trucking Cargo</h3>
-                            <p>Professional truck transport business management system designed for efficient logistics operations.</p>
-                            <div class="owner-profiles">
-                                <h4>Owner Profile</h4>
-                                <div class="profile-card">
-                                    <div class="profile-avatar">👤</div>
-                                    <div class="profile-info">
-                                        <h5>Mr.&Mrs.Batna and Mr.&Mrs.Kinjarapu</h5>
-                                        <p>Business Owner</p>
-                                        <p>📞 Contact: +91 7572951135,+91 8639840348</p>
-                                        <p>📧 Email: damayantilorryservice@gmail.com</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="button-group">
+                <button type="button" class="btn-secondary" onclick="restartAssessment()">Take Test Again</button>
+                <button type="button" class="btn-primary" onclick="printResults()">Print Results</button>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Alert Modal -->
-    <div id="alertModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Alert</h3>
-                <button class="modal-close" onclick="closeModal('alertModal')">&times;</button>
-            </div>
-            <form id="alertForm">
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" id="alertTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea id="alertDescription" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" id="alertDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select id="alertPriority" class="form-control">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Alert</button>
-            </form>
-        </div>
-    </div>
+    <script>
+        // Questions Database
+        const questions = [
+            {
+                id: 1,
+                title: "How would you rate your overall mood over the past week?",
+                type: "scale",
+                options: ["Very Sad", "Sad", "Neutral", "Good", "Excellent"],
+                weight: 1
+            },
+            {
+                id: 2,
+                title: "How many hours of sleep do you typically get per night?",
+                type: "scale",
+                options: ["Less than 4 hours", "4-6 hours", "6-8 hours", "8-10 hours", "More than 10 hours"],
+                weight: 1
+            },
+            {
+                id: 3,
+                title: "How often do you feel anxious or worried?",
+                type: "scale",
+                options: ["Almost Always", "Often", "Sometimes", "Rarely", "Never"],
+                weight: 1.2
+            },
+            {
+                id: 4,
+                title: "How satisfied are you with your daily activities and accomplishments?",
+                type: "scale",
+                options: ["Very Unsatisfied", "Unsatisfied", "Neutral", "Satisfied", "Very Satisfied"],
+                weight: 1
+            },
+            {
+                id: 5,
+                title: "How is your social connection with family and friends?",
+                type: "scale",
+                options: ["Very Poor", "Poor", "Average", "Good", "Excellent"],
+                weight: 1
+            },
+            {
+                id: 6,
+                title: "How often do you experience physical symptoms (headaches, fatigue, body pain)?",
+                type: "scale",
+                options: ["Almost Always", "Often", "Sometimes", "Rarely", "Never"],
+                weight: 1
+            },
+            {
+                id: 7,
+                title: "How confident are you in managing stress?",
+                type: "scale",
+                options: ["Not Confident", "Somewhat Confident", "Neutral", "Confident", "Very Confident"],
+                weight: 1
+            },
+            {
+                id: 8,
+                title: "How often do you engage in physical exercise or outdoor activities?",
+                type: "scale",
+                options: ["Never", "Rarely", "Sometimes", "Often", "Daily"],
+                weight: 1
+            },
+            {
+                id: 9,
+                title: "How is your appetite and eating habit?",
+                type: "scale",
+                options: ["Very Poor", "Poor", "Normal", "Good", "Excellent"],
+                weight: 1
+            },
+            {
+                id: 10,
+                title: "How often do you feel hopeful about your future?",
+                type: "scale",
+                options: ["Never", "Rarely", "Sometimes", "Often", "Always"],
+                weight: 1.2
+            }
+        ];
 
-    <!-- Truck Modal -->
-    <div id="truckModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Truck</h3>
-                <button class="modal-close" onclick="closeModal('truckModal')">&times;</button>
-            </div>
-            <form id="truckForm">
-                <div class="form-group">
-                    <label class="form-label">Truck Number</label>
-                    <input type="text" id="truckNumber" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Type</label>
-                    <input type="text" id="truckType" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Capacity</label>
-                    <input type="text" id="truckCapacity" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select id="truckStatus" class="form-control">
-                        <option value="Active">Active</option>
-                        <option value="Idle">Idle</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Truck</button>
-            </form>
-        </div>
-    </div>
+        // State Management
+        let currentQuestion = 0;
+        let userAnswers = {};
+        let userName = "";
+        let userAge = 0;
 
-    <!-- Trip Modal -->
-    <div id="tripModal" class="modal hidden">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3>Add Trip</h3>
-                <button class="modal-close" onclick="closeModal('tripModal')">&times;</button>
-            </div>
-            <form id="tripForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Truck</label>
-                        <select id="tripTruck" class="form-control" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Driver</label>
-                        <select id="tripDriver" class="form-control" required></select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Item Carried</label>
-                    <input type="text" id="tripItem" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Weight (tons)</label>
-                    <input type="text" id="tripWeight" class="form-control" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">From</label>
-                        <input type="text" id="tripFrom" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">To</label>
-                        <input type="text" id="tripTo" class="form-control" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" id="tripStartDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">End Date</label>
-                        <input type="date" id="tripEndDate" class="form-control" required>
-                    </div>
-                </div>
-                <div class="expenses-section">
-                    <h4>Expenses</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Fuel (₹)</label>
-                            <input type="number" id="tripFuel" class="form-control" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">DEF Oil (₹)</label>
-                            <input type="number" id="tripDef" class="form-control" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Food (₹)</label>
-                            <input type="number" id="tripFood" class="form-control" value="0">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Line (₹)</label>
-                            <input type="number" id="tripLine" class="form-control" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Toll (₹)</label>
-                            <input type="number" id="tripToll" class="form-control" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Revenue (₹)</label>
-                            <input type="number" id="tripRevenue" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="tripRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Trip</button>
-            </form>
-        </div>
-    </div>
+        // Initialize
+        document.getElementById("infoForm").addEventListener("submit", startAssessment);
 
-    <!-- Driver Modal -->
-    <div id="driverModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Driver</h3>
-                <button class="modal-close" onclick="closeModal('driverModal')">&times;</button>
-            </div>
-            <form id="driverForm">
-                <div class="form-group">
-                    <label class="form-label">Name</label>
-                    <input type="text" id="driverName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="tel" id="driverPhone" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">License Number</label>
-                    <input type="text" id="driverLicense" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="driverRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Driver</button>
-            </form>
-        </div>
-    </div>
+        function startAssessment(e) {
+            e.preventDefault();
+            userName = document.getElementById("name").value;
+            userAge = document.getElementById("age").value;
 
-    <!-- Document Modal -->
-    <div id="documentModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Upload Document</h3>
-                <button class="modal-close" onclick="closeModal('documentModal')">&times;</button>
-            </div>
-            <form id="documentForm">
-                <div class="form-group">
-                    <label class="form-label">Document Name</label>
-                    <input type="text" id="documentName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Document Type</label>
-                    <select id="documentType" class="form-control" required>
-                        <option value="">Select Type</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Fitness">Fitness Certificate</option>
-                        <option value="Road Tax">Road Tax</option>
-                        <option value="Income Tax">Income Tax</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Truck</label>
-                    <select id="documentTruck" class="form-control" required></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Expiry Date</label>
-                    <input type="date" id="documentExpiry" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="documentRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Document</button>
-            </form>
-        </div>
-    </div>
+            if (!userName || !userAge) {
+                alert("Please fill in all fields");
+                return;
+            }
 
-    <!-- EMI Modal -->
-    <div id="emiModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add EMI Payment</h3>
-                <button class="modal-close" onclick="closeModal('emiModal')">&times;</button>
-            </div>
-            <form id="emiForm">
-                <div class="form-group">
-                    <label class="form-label">Truck</label>
-                    <select id="emiTruck" class="form-control" required></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Monthly Amount (₹)</label>
-                    <input type="number" id="emiAmount" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Payment Date</label>
-                    <input type="date" id="emiDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total EMI Amount (₹)</label>
-                    <input type="number" id="emiTotal" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn--primary">Save EMI Payment</button>
-            </form>
-        </div>
-    </div>
+            document.getElementById("welcomeSection").classList.add("hidden");
+            document.getElementById("quizSection").classList.remove("hidden");
+            userAnswers = {};
+            currentQuestion = 0;
+            displayQuestion();
+        }
 
-    <!-- ITR Modal -->
-    <div id="itrModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add ITR Record</h3>
-                <button class="modal-close" onclick="closeModal('itrModal')">&times;</button>
-            </div>
-            <form id="itrForm">
-                <div class="form-group">
-                    <label class="form-label">Financial Year</label>
-                    <input type="text" id="itrYear" class="form-control" placeholder="2023-24" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total Income (₹)</label>
-                    <input type="number" id="itrIncome" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total Expenses (₹)</label>
-                    <input type="number" id="itrExpenses" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tax Paid (₹)</label>
-                    <input type="number" id="itrTax" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea id="itrRemarks" class="form-control" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn btn--primary">Save ITR Record</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Alarm Modal -->
-    <div id="alarmModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Alarm</h3>
-                <button class="modal-close" onclick="closeModal('alarmModal')">&times;</button>
-            </div>
-            <form id="alarmForm">
-                <div class="form-group">
-                    <label class="form-label">Task Title</label>
-                    <input type="text" id="alarmTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea id="alarmDescription" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Date</label>
-                        <input type="date" id="alarmDate" class="form-control" required>
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            const container = document.getElementById("questionContainer");
+            
+            let html = `<div class="question-container"><div class="question-title">Q${currentQuestion + 1}. ${question.title}</div><div class="options">`;
+            
+            question.options.forEach((option, index) => {
+                const isSelected = userAnswers[currentQuestion] === index;
+                html += `
+                    <div class="option">
+                        <label>
+                            <input type="radio" name="question${currentQuestion}" value="${index}" ${isSelected ? 'checked' : ''} onchange="selectAnswer(${currentQuestion}, ${index})">
+                            ${option}
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Time</label>
-                        <input type="time" id="alarmTime" class="form-control" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select id="alarmPriority" class="form-control">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Alarm</button>
-            </form>
-        </div>
-    </div>
+                `;
+            });
+            
+            html += `</div></div>`;
+            container.innerHTML = html;
 
-    <!-- Note Modal -->
-    <div id="noteModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add Note</h3>
-                <button class="modal-close" onclick="closeModal('noteModal')">&times;</button>
-            </div>
-            <form id="noteForm">
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" id="noteTitle" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Content</label>
-                    <textarea id="noteContent" class="form-control" rows="6" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Category</label>
-                    <select id="noteCategory" class="form-control">
-                        <option value="General">General</option>
-                        <option value="Business">Business</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Important">Important</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn--primary">Save Note</button>
-            </form>
-        </div>
-    </div>
+            // Update progress
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById("progressFill").style.width = progress + "%";
+            document.getElementById("progressText").textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
 
-    <script src="app.js"></script>
+            // Update button states
+            document.getElementById("prevBtn").disabled = currentQuestion === 0;
+            document.getElementById("nextBtn").disabled = !userAnswers.hasOwnProperty(currentQuestion);
+            document.getElementById("nextBtn").textContent = currentQuestion === questions.length - 1 ? "Finish →" : "Next →";
+        }
+
+        function selectAnswer(questionIndex, answerIndex) {
+            userAnswers[questionIndex] = answerIndex;
+            document.getElementById("nextBtn").disabled = false;
+        }
+
+        function nextQuestion() {
+            if (!userAnswers.hasOwnProperty(currentQuestion)) {
+                alert("Please select an answer");
+                return;
+            }
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+            } else {
+                calculateResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+            }
+        }
+
+        function calculateResults() {
+            let totalScore = 0;
+            let maxScore = 0;
+
+            questions.forEach((question, index) => {
+                const answerIndex = userAnswers[index];
+                const questionScore = answerIndex * question.weight;
+                const maxQuestionScore = (question.options.length - 1) * question.weight;
+                
+                totalScore += questionScore;
+                maxScore += maxQuestionScore;
+            });
+
+            const percentageScore = Math.round((totalScore / maxScore) * 100);
+            displayResults(percentageScore);
+        }
+
+        function displayResults(score) {
+            document.getElementById("quizSection").classList.add("hidden");
+            document.getElementById("resultsSection").classList.remove("hidden");
+
+            const resultCard = document.getElementById("resultCard");
+            const resultScore = document.getElementById("resultScore");
+            const resultDescription = document.getElementById("resultDescription");
+            const recommendationsDiv = document.getElementById("recommendations");
+
+            resultScore.textContent = `Score: ${score}%`;
+
+            let status, description, recommendations, cardClass;
+
+            if (score < 40) {
+                status = "⚠️ Needs Attention";
+                description = `Hi ${userName}, your assessment indicates that your mental health may need some attention. You might be experiencing significant stress, anxiety, or low mood. It's important to reach out for support.`;
+                cardClass = "danger";
+                recommendations = [
+                    "Seek professional help from a therapist or counselor",
+                    "Talk to trusted family members or friends about your feelings",
+                    "Practice relaxation techniques like deep breathing or meditation",
+                    "Maintain a regular sleep schedule",
+                    "Limit caffeine and alcohol intake",
+                    "Engage in light physical activity",
+                    "Consider joining a support group",
+                    "Contact a mental health helpline if you're in crisis"
+                ];
+            } else if (score < 60) {
+                status = "⚡ Moderate";
+                description = `Hi ${userName}, your assessment shows moderate mental wellness. There are areas where you could improve your mental health and overall well-being.`;
+                cardClass = "warning";
+                recommendations = [
+                    "Practice regular meditation or mindfulness exercises",
+                    "Engage in physical activity at least 30 minutes daily",
+                    "Maintain a healthy sleep routine (7-8 hours per night)",
+                    "Spend quality time with loved ones",
+                    "Pursue hobbies and activities you enjoy",
+                    "Consider talking to a counselor for guidance",
+                    "Practice stress management techniques",
+                    "Maintain a balanced diet and hydration"
+                ];
+            } else {
+                status = "✅ Good Mental Health";
+                description = `Hi ${userName}, great job! Your assessment indicates that you have good mental health and well-being. Keep maintaining these positive habits!`;
+                cardClass = "success";
+                recommendations = [
+                    "Continue your regular exercise routine",
+                    "Maintain strong social connections",
+                    "Practice gratitude and positive thinking daily",
+                    "Keep up with your healthy sleep schedule",
+                    "Engage in activities that bring you joy",
+                    "Support others in their mental health journey",
+                    "Continue stress management practices",
+                    "Schedule regular check-ups with healthcare providers"
+                ];
+            }
+
+            resultCard.classList.remove("success", "warning", "danger");
+            resultCard.classList.add(cardClass);
+            resultCard.querySelector(".result-title").textContent = status;
+            resultDescription.textContent = description;
+
+            let recHTML = `<h3>📋 Recommended Steps for You:</h3><ul>`;
+            recommendations.forEach(rec => {
+                recHTML += `<li>${rec}</li>`;
+            });
+            recHTML += `</ul>`;
+            recommendationsDiv.innerHTML = recHTML;
+        }
+
+        function restartAssessment() {
+            document.getElementById("welcomeSection").classList.remove("hidden");
+            document.getElementById("resultsSection").classList.add("hidden");
+            document.getElementById("infoForm").reset();
+            currentQuestion = 0;
+            userAnswers = {};
+        }
+
+        function printResults() {
+            window.print();
+        }
+    </script>
 </body>
 </html>
