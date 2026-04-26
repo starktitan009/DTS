@@ -190,7 +190,7 @@ function handleLogin(e) {
     errorDiv.classList.add('hidden');
     
     // Validate credentials
-    if (username === 'DTS' && password === '1234') {
+    if (username === 'Damayanti2023' && password === '02092007') {
         currentUser = { username: username };
         
         // Hide login screen and show main app
