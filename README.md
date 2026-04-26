@@ -5,7 +5,8 @@ A simple **web-based Transport Management System** built using **HTML, CSS, and 
 This application helps manage trucks, drivers, trips, alerts, and basic business data — all stored locally in the browser.
 
 ---
-
+**Note: Username: DTS
+        Password: 1234**
 ## ✨ Features
 
 ### 🚛 Trucks Management
